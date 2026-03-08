@@ -527,7 +527,7 @@ const CourseDetail = () => {
 
                         {/* Guarantee texts */}
                         <div className="text-center space-y-0.5">
-                          <p className="text-[11px] text-muted-foreground">30-Day Money-Back Guarantee</p>
+                          <p className="text-[11px] text-muted-foreground">7-day refund only if any issue found</p>
                           <p className="text-[11px] text-muted-foreground">Full Lifetime Access</p>
                         </div>
                       </div>
