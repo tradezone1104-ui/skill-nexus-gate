@@ -105,7 +105,54 @@ const ResellerDashboard = () => {
           ))}
         </div>
 
-        {/* Referral Link */}
+        {/* Commission Tier */}
+        <Card className="border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" /> Commission Tier
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current Tier:</span>
+                  <Badge variant={currentTier.rate === 30 ? "default" : "secondary"} className="text-xs">
+                    {currentTier.name}
+                  </Badge>
+                </div>
+                <p className="text-2xl font-bold text-primary">{currentTier.rate}% Commission</p>
+              </div>
+              <div className="sm:ml-auto text-sm text-muted-foreground">
+                Sales This Month: <span className="font-bold text-foreground">{monthlySales}</span>
+              </div>
+            </div>
+
+            {/* Tier progress bar */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>15%</span>
+                <span>20%</span>
+                <span>30%</span>
+              </div>
+              <Progress value={Math.min((monthlySales / 11) * 100, 100)} className="h-2.5" />
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  {monthlySales} / {currentTier.next ? currentTier.next.minSales : "∞"} sales
+                </span>
+                {currentTier.next ? (
+                  <span className="text-primary font-medium">
+                    {currentTier.salesToNext} more sale{currentTier.salesToNext !== 1 ? "s" : ""} to unlock {currentTier.next.rate}%
+                  </span>
+                ) : (
+                  <span className="text-primary font-medium">Max tier reached 🎉</span>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+
         <Card className="border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground">Your Referral Link</CardTitle>
