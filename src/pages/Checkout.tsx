@@ -2,14 +2,12 @@ import { useState, useMemo } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle, MessageCircle, Shield, CreditCard, Smartphone,
-  Building, Coins, Tag, ArrowLeft
+  Building, Coins, Tag, X, Lock, Wallet, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { Separator } from "@/components/ui/separator";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
@@ -17,7 +15,9 @@ import { useCvCoins } from "@/hooks/useCvCoins";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type PaymentMethod = "upi" | "paytm" | "netbanking" | "card";
+type PaymentMethod = "upi" | "card" | "netbanking" | "wallet";
+
+const BANKS = ["State Bank of India", "HDFC Bank", "ICICI Bank", "Axis Bank", "Kotak Mahindra Bank", "Bank of Baroda", "Punjab National Bank"];
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
@@ -30,17 +30,23 @@ const Checkout = () => {
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
   const [upiId, setUpiId] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [selectedBank, setSelectedBank] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
+  const [showCoupon, setShowCoupon] = useState(false);
   const [useCoins, setUseCoins] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
 
   if (!course) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
           <h1 className="font-display font-bold text-2xl text-foreground">Course not found</h1>
           <Link to="/courses"><Button className="mt-4">Browse Courses</Button></Link>
         </div>
@@ -50,9 +56,8 @@ const Checkout = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
           <h1 className="font-display font-bold text-2xl text-foreground mb-4">Sign in required</h1>
           <p className="text-muted-foreground mb-6">You need to sign in to complete your purchase.</p>
           <Link to="/login"><Button>Sign In</Button></Link>
@@ -62,6 +67,7 @@ const Checkout = () => {
   }
 
   const discount = course.originalPrice - course.price;
+  const discountPercent = Math.round((discount / course.originalPrice) * 100);
   const couponDiscount = couponApplied ? Math.floor(course.price * 0.1) : 0;
   const maxCoins = Math.min(balance, Math.floor((course.price - couponDiscount) * 0.5));
   const coinDiscount = useCoins ? maxCoins : 0;
@@ -77,29 +83,35 @@ const Checkout = () => {
   };
 
   const handlePayment = async () => {
-    if (paymentMethod === "card") {
-      toast.error("Card payments coming soon");
-      return;
-    }
     if (paymentMethod === "upi" && !upiId.includes("@")) {
       toast.error("Please enter a valid UPI ID");
+      return;
+    }
+    if (paymentMethod === "card") {
+      if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
+        toast.error("Please fill all card details");
+        return;
+      }
+    }
+    if (paymentMethod === "netbanking" && !selectedBank) {
+      toast.error("Please select a bank");
+      return;
+    }
+    if (paymentMethod === "wallet" && !mobileNumber) {
+      toast.error("Please enter your mobile number");
       return;
     }
 
     setProcessing(true);
     try {
-      // Spend coins if applicable
       if (useCoins && coinDiscount > 0) {
         await spendCoins(coinDiscount, `Discount on ${course.title}`);
       }
-
-      // Record purchase
       const { error } = await supabase.from("purchases").insert({
         user_id: user.id,
         course_id: course.id,
         price_paid: total,
       });
-
       if (error) throw error;
       addPurchasedIds([course.id]);
       setSuccess(true);
@@ -113,28 +125,24 @@ const Checkout = () => {
   // ===== SUCCESS STATE =====
   if (success) {
     return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="container mx-auto px-4 py-16 max-w-lg text-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="max-w-md w-full text-center space-y-6">
           <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
-            <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-              <CheckCircle className="h-10 w-10 text-primary" />
-            </div>
+            <div className="text-6xl">🎉</div>
             <div>
               <h1 className="font-display font-bold text-2xl text-foreground">Payment Successful!</h1>
               <p className="text-muted-foreground mt-2">You now have access to</p>
-              <p className="font-semibold text-foreground mt-1">{course.title}</p>
             </div>
 
-            <div className="bg-muted/30 rounded-lg p-4">
-              <p className="text-sm text-muted-foreground mb-1">Amount paid</p>
-              <p className="font-display font-bold text-xl text-foreground">₹{total}</p>
+            <div className="flex items-center gap-3 bg-muted/30 rounded-lg p-3">
+              <img src={course.thumbnail} alt={course.title} className="w-16 h-11 rounded object-cover shrink-0" />
+              <p className="font-semibold text-foreground text-sm text-left line-clamp-2">{course.title}</p>
             </div>
 
             <div className="space-y-3">
               <a href={course.telegramLink} target="_blank" rel="noopener noreferrer" className="block">
                 <Button size="lg" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-                  <MessageCircle className="mr-2 h-5 w-5" /> Access Course via Telegram
+                  <MessageCircle className="mr-2 h-5 w-5" /> Access Course on Telegram
                 </Button>
               </a>
               <Link to="/my-learning" className="block">
@@ -145,51 +153,179 @@ const Checkout = () => {
             </div>
           </div>
         </div>
-        <Footer />
       </div>
     );
   }
 
-  // ===== CHECKOUT FORM =====
-  const methods: { id: PaymentMethod; label: string; icon: typeof Smartphone; disabled?: boolean }[] = [
-    { id: "upi", label: "UPI", icon: Smartphone },
-    { id: "paytm", label: "Paytm", icon: Smartphone },
-    { id: "netbanking", label: "Net Banking", icon: Building },
-    { id: "card", label: "Card (Coming Soon)", icon: CreditCard, disabled: true },
-  ];
-
+  // ===== CHECKOUT LAYOUT =====
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      {/* Minimal top bar */}
+      <div className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-6xl">
+          <Link to="/" className="font-display font-bold text-lg text-foreground">
+            Course<span className="text-primary">Verse</span>
+          </Link>
+          <button
+            onClick={() => navigate(-1)}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <Link to={`/course/${course.id}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-sm mb-6 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Back to course
-        </Link>
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 className="font-display font-bold text-3xl text-foreground mb-8">Checkout</h1>
 
-        <h1 className="font-display font-bold text-2xl text-foreground mb-8">Checkout</h1>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* LEFT — Payment + Order Details */}
+          <div className="lg:col-span-2 space-y-6">
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          {/* LEFT — Order Summary */}
-          <div className="lg:col-span-2 order-2 lg:order-1">
-            <div className="bg-card border border-border rounded-xl p-5 space-y-5 sticky top-20">
-              <h2 className="font-display font-bold text-lg text-foreground">Order Summary</h2>
+            {/* Payment Method */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-display font-bold text-lg text-foreground">Payment method</h2>
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Secure and encrypted 🔒
+                </span>
+              </div>
 
-              <div className="flex gap-4">
-                <img src={course.thumbnail} alt={course.title} className="w-24 h-16 rounded-lg object-cover shrink-0" />
-                <div className="min-w-0">
+              <div className="space-y-3">
+                {/* UPI */}
+                <PaymentOption
+                  selected={paymentMethod === "upi"}
+                  onClick={() => setPaymentMethod("upi")}
+                  label="UPI"
+                  description="Google Pay, PhonePe, Paytm UPI"
+                  icon={<Smartphone className="h-5 w-5" />}
+                >
+                  <div className="flex gap-2 mt-3">
+                    <Input
+                      placeholder="Enter your UPI ID"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      className="bg-background"
+                    />
+                    <Button variant="outline" size="sm" className="shrink-0">
+                      Verify
+                    </Button>
+                  </div>
+                </PaymentOption>
+
+                {/* Cards */}
+                <PaymentOption
+                  selected={paymentMethod === "card"}
+                  onClick={() => setPaymentMethod("card")}
+                  label="Cards"
+                  description="Visa, Mastercard, RuPay"
+                  icon={<CreditCard className="h-5 w-5" />}
+                >
+                  <div className="space-y-3 mt-3">
+                    <Input
+                      placeholder="Card number"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
+                      className="bg-background"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        placeholder="MM/YY"
+                        value={cardExpiry}
+                        onChange={(e) => setCardExpiry(e.target.value)}
+                        className="bg-background"
+                      />
+                      <Input
+                        placeholder="CVV"
+                        value={cardCvv}
+                        onChange={(e) => setCardCvv(e.target.value)}
+                        className="bg-background"
+                        type="password"
+                      />
+                    </div>
+                    <Input
+                      placeholder="Name on card"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                </PaymentOption>
+
+                {/* Net Banking */}
+                <PaymentOption
+                  selected={paymentMethod === "netbanking"}
+                  onClick={() => setPaymentMethod("netbanking")}
+                  label="Net Banking"
+                  description="All major banks supported"
+                  icon={<Building className="h-5 w-5" />}
+                >
+                  <div className="mt-3 relative">
+                    <select
+                      value={selectedBank}
+                      onChange={(e) => setSelectedBank(e.target.value)}
+                      className="w-full bg-background border border-input rounded-md px-3 py-2 text-sm text-foreground appearance-none cursor-pointer"
+                    >
+                      <option value="">Select your bank</option>
+                      {BANKS.map(bank => (
+                        <option key={bank} value={bank}>{bank}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="h-4 w-4 text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                </PaymentOption>
+
+                {/* Mobile Wallets */}
+                <PaymentOption
+                  selected={paymentMethod === "wallet"}
+                  onClick={() => setPaymentMethod("wallet")}
+                  label="Mobile Wallets"
+                  description="Paytm, PhonePe"
+                  icon={<Wallet className="h-5 w-5" />}
+                >
+                  <div className="mt-3">
+                    <Input
+                      placeholder="Enter mobile number"
+                      value={mobileNumber}
+                      onChange={(e) => setMobileNumber(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                </PaymentOption>
+              </div>
+            </div>
+
+            {/* Order Details */}
+            <div className="bg-card border border-border rounded-xl p-6">
+              <h2 className="font-display font-bold text-lg text-foreground mb-4">
+                Order details <span className="text-muted-foreground font-normal text-sm">(1 course)</span>
+              </h2>
+              <div className="flex gap-4 items-start">
+                <img src={course.thumbnail} alt={course.title} className="w-28 h-[4.5rem] rounded-lg object-cover shrink-0" />
+                <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm leading-tight line-clamp-2">{course.title}</p>
                   <p className="text-xs text-muted-foreground mt-1">by {course.instructor}</p>
                 </div>
+                <div className="text-right shrink-0">
+                  <p className="font-display font-bold text-foreground">₹{course.price}</p>
+                  <p className="text-xs text-muted-foreground line-through">₹{course.originalPrice}</p>
+                </div>
               </div>
+            </div>
+          </div>
 
-              <div className="border-t border-border pt-4 space-y-2.5 text-sm">
+          {/* RIGHT — Order Summary (sticky) */}
+          <div className="lg:col-span-1">
+            <div className="bg-card border border-border rounded-xl p-6 space-y-5 sticky top-20">
+              <h2 className="font-display font-bold text-lg text-foreground">Order Summary</h2>
+
+              <div className="space-y-2.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Original price</span>
+                  <span>Original Price</span>
                   <span>₹{course.originalPrice}</span>
                 </div>
                 <div className="flex justify-between text-primary">
-                  <span>Discount</span>
+                  <span>Discount ({discountPercent}% Off)</span>
                   <span>-₹{discount}</span>
                 </div>
                 {couponApplied && (
@@ -199,130 +335,138 @@ const Checkout = () => {
                   </div>
                 )}
                 {useCoins && coinDiscount > 0 && (
-                  <div className="flex justify-between text-warning">
+                  <div className="flex justify-between text-[hsl(var(--warning))]">
                     <span>CV Coins ({coinDiscount})</span>
                     <span>-₹{coinDiscount}</span>
                   </div>
                 )}
-                <div className="border-t border-border pt-2.5 flex justify-between font-display font-bold text-lg text-foreground">
-                  <span>Total</span>
-                  <span>₹{total}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT — Payment */}
-          <div className="lg:col-span-3 order-1 lg:order-2 space-y-6">
-            {/* Coupon */}
-            <div className="bg-card border border-border rounded-xl p-5">
-              <h3 className="font-display font-semibold text-sm text-foreground mb-3 flex items-center gap-2">
-                <Tag className="h-4 w-4" /> Promo Code
-              </h3>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter coupon code"
-                  value={coupon}
-                  onChange={(e) => setCoupon(e.target.value)}
-                  disabled={couponApplied}
-                  className="bg-background"
-                />
-                <Button
-                  variant="outline"
-                  onClick={handleApplyCoupon}
-                  disabled={couponApplied || !coupon.trim()}
-                >
-                  {couponApplied ? "Applied" : "Apply"}
-                </Button>
-              </div>
-              {couponApplied && <p className="text-xs text-primary mt-2">10% discount applied!</p>}
-            </div>
-
-            {/* CV Coins */}
-            {balance > 0 && (
-              <div className="bg-card border border-border rounded-xl p-5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Coins className="h-4 w-4 text-warning" />
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">Use CV Coins</p>
-                      <p className="text-xs text-muted-foreground">
-                        You have {balance} coins (₹{balance}). Max applicable: ₹{maxCoins}
-                      </p>
-                    </div>
-                  </div>
-                  <Switch checked={useCoins} onCheckedChange={setUseCoins} />
-                </div>
-              </div>
-            )}
-
-            {/* Payment Methods */}
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-              <h3 className="font-display font-semibold text-sm text-foreground">Payment Method</h3>
-
-              <div className="grid grid-cols-2 gap-2">
-                {methods.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => !m.disabled && setPaymentMethod(m.id)}
-                    disabled={m.disabled}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-colors ${
-                      paymentMethod === m.id
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : m.disabled
-                        ? "border-border bg-muted/30 text-muted-foreground opacity-50 cursor-not-allowed"
-                        : "border-border bg-background text-muted-foreground hover:border-muted-foreground"
-                    }`}
-                  >
-                    <m.icon className="h-4 w-4" />
-                    {m.label}
-                  </button>
-                ))}
               </div>
 
-              {paymentMethod === "upi" && (
-                <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">UPI ID</label>
-                  <Input
-                    placeholder="yourname@upi"
-                    value={upiId}
-                    onChange={(e) => setUpiId(e.target.value)}
-                    className="bg-background"
-                  />
-                </div>
-              )}
-              {paymentMethod === "paytm" && (
-                <p className="text-sm text-muted-foreground">You will be redirected to Paytm to complete payment.</p>
-              )}
-              {paymentMethod === "netbanking" && (
-                <p className="text-sm text-muted-foreground">You will be redirected to your bank's secure portal.</p>
-              )}
+              <Separator />
+
+              <div className="flex justify-between font-display font-bold text-xl text-foreground">
+                <span>Total (1 course)</span>
+                <span>₹{total}</span>
+              </div>
+
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                By completing your purchase, you agree to our{" "}
+                <span className="underline cursor-pointer">Terms of Use</span>
+              </p>
 
               <Button
                 size="lg"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base shadow-glow"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base"
                 onClick={handlePayment}
                 disabled={processing || isPurchased(course.id)}
               >
-                {processing ? "Processing…" : `Pay ₹${total}`}
+                <Lock className="mr-2 h-4 w-4" />
+                {processing ? "Processing…" : "Proceed"}
               </Button>
 
-              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <Shield className="h-3.5 w-3.5" />
-                Secure payment · 256-bit encryption
+              <p className="text-[11px] text-muted-foreground text-center">
+                7-day refund only if any issue found
+              </p>
+
+              <Separator />
+
+              {/* Apply Coupon */}
+              <div>
+                <button
+                  onClick={() => setShowCoupon(!showCoupon)}
+                  className="text-sm text-foreground hover:underline transition-all"
+                >
+                  Apply Coupon
+                </button>
+                {showCoupon && (
+                  <div className="flex gap-2 mt-3">
+                    <Input
+                      placeholder="Enter coupon code"
+                      value={coupon}
+                      onChange={(e) => setCoupon(e.target.value)}
+                      disabled={couponApplied}
+                      className="bg-background text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleApplyCoupon}
+                      disabled={couponApplied || !coupon.trim()}
+                    >
+                      {couponApplied ? "Applied" : "Apply"}
+                    </Button>
+                  </div>
+                )}
+                {couponApplied && <p className="text-xs text-primary mt-1">10% discount applied!</p>}
               </div>
 
-              <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground leading-relaxed">
-                <span className="font-semibold text-foreground">Refund Policy:</span> Refund available only if course content is broken or description is misleading. Contact support within 30 days of purchase.
-              </div>
+              {/* CV Coins */}
+              {balance > 0 && (
+                <>
+                  <Separator />
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                        <Coins className="h-4 w-4 text-[hsl(var(--warning))]" /> Use CV Coins
+                      </p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {balance} coins available · Max ₹{maxCoins} off
+                      </p>
+                    </div>
+                    <Switch checked={useCoins} onCheckedChange={setUseCoins} />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };
+
+/* ── Payment Option Component ── */
+function PaymentOption({
+  selected,
+  onClick,
+  label,
+  description,
+  icon,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`border rounded-xl p-4 cursor-pointer transition-all ${
+        selected
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-muted-foreground/40"
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
+            selected ? "border-primary" : "border-muted-foreground/40"
+          }`}
+        >
+          {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
+        </div>
+        <div className="text-muted-foreground">{icon}</div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">{label}</p>
+          <p className="text-[11px] text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {selected && <div className="ml-7">{children}</div>}
+    </div>
+  );
+}
 
 export default Checkout;
