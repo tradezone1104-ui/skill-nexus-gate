@@ -73,6 +73,7 @@ const App = () => (
                   <Route path="/settings/profile" element={<ProfileSettings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <FloatingSupport />
                 </NotificationProvider>
                 </SubscriptionProvider>
                 </PurchaseProvider>
