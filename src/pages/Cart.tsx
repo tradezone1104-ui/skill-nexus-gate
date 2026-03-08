@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import { useCartContext } from "@/contexts/CartContext";
+import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
