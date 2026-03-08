@@ -107,9 +107,15 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
+    setLogoutDialogOpen(false);
     setProfileOpen(false);
+    setMobileOpen(false);
     await signOut();
     navigate("/");
+  };
+
+  const promptLogout = () => {
+    setLogoutDialogOpen(true);
   };
 
   return (
