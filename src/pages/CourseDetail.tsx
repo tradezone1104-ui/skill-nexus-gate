@@ -534,18 +534,12 @@ const CourseDetail = () => {
 
                       {/* ── 4. BOTTOM LINKS ── */}
                       <Separator />
-                      <div className="flex items-center justify-center gap-1 text-[11px]">
-                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                          <Share2 className="h-3 w-3" /> Share
-                        </button>
+                      <div className="flex items-center justify-center gap-2 text-sm">
+                        <button className="text-foreground hover:underline transition-all">Share</button>
                         <span className="text-border">|</span>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                          <Gift className="h-3 w-3" /> Gift this Course
-                        </button>
+                        <button className="text-foreground hover:underline transition-all">Gift this Course</button>
                         <span className="text-border">|</span>
-                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
-                          <Tag className="h-3 w-3" /> Apply Coupon
-                        </button>
+                        <button className="text-foreground hover:underline transition-all">Apply Coupon</button>
                       </div>
                     </>
                   )}
