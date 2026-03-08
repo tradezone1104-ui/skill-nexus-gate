@@ -38,7 +38,7 @@ const Checkout = () => {
   const [mobileNumber, setMobileNumber] = useState("");
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState(false);
-  const [showCoupon, setShowCoupon] = useState(false);
+  const [couponError, setCouponError] = useState(false);
   const [useCoins, setUseCoins] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
