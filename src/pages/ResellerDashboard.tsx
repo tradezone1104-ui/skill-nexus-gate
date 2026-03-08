@@ -27,11 +27,11 @@ const salesHistory = [
 ];
 
 const leaderboard = [
-  { name: "Rahul", earnings: "₹32,000", rank: 1 },
-  { name: "Aman", earnings: "₹21,000", rank: 2 },
-  { name: "Priya", earnings: "₹18,500", rank: 3 },
-  { name: "Sneha", earnings: "₹12,200", rank: 4 },
-  { name: "Vikram", earnings: "₹9,800", rank: 5 },
+  { id: "#A7F2", earnings: "₹48,500", rank: 1 },
+  { id: "#K91X", earnings: "₹36,200", rank: 2 },
+  { id: "#P44Q", earnings: "₹28,900", rank: 3 },
+  { id: "#D83M", earnings: "₹19,400", rank: 4 },
+  { id: "#W56R", earnings: "₹14,100", rank: 5 },
 ];
 
 const ResellerDashboard = () => {
