@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
