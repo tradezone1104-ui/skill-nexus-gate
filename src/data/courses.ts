@@ -32,7 +32,14 @@ const categoryIconMap: Record<string, string> = {
   "algo-ai": "🤖",
 };
 
-const thumbnails = [
+export const categories = categoryGroups.map((cg) => ({
+  id: cg.id,
+  name: cg.name,
+  icon: categoryIconMap[cg.id] || "📚",
+  count: 0,
+}));
+
+
   "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",
   "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=600&q=80",
   "https://images.unsplash.com/photo-1560472355-536de3962603?w=600&q=80",
