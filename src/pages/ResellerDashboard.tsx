@@ -53,6 +53,11 @@ const ResellerDashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [withdrawMethod, setWithdrawMethod] = useState("upi");
+  const monthlySales = 7; // mock — would come from DB
+  const currentTier = useMemo(() => getTier(monthlySales), [monthlySales]);
+  const tierProgress = currentTier.next
+    ? ((monthlySales - (currentTier.minSales || 0)) / ((currentTier.next?.minSales || 1) - (currentTier.minSales || 0))) * 100
+    : 100;
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");

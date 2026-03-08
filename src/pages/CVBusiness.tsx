@@ -73,27 +73,31 @@ const CVBusiness = () => {
         </div>
       </section>
 
-      {/* Commission Highlight */}
+      {/* Commission Tiers */}
       <section className="py-16 md:py-24 bg-muted/40">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <div className="rounded-2xl border border-border bg-card p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
-            <div className="flex-1 space-y-4">
-              <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Earn Up To 30% Commission</h2>
-              <p className="text-muted-foreground">
-                For every course sold through your referral link, you earn a generous commission — deposited straight to your account.
-              </p>
-              <div className="flex items-baseline gap-2 pt-2">
-                <span className="text-muted-foreground text-base">Sell a</span>
-                <span className="text-foreground font-semibold text-xl">₹499</span>
-                <span className="text-muted-foreground text-base">course →</span>
-                <span className="text-primary font-bold text-2xl">Earn ₹150</span>
-              </div>
-            </div>
-            <div className="shrink-0 w-36 h-36 rounded-2xl bg-primary/10 flex flex-col items-center justify-center">
-              <span className="text-4xl font-bold text-primary">30%</span>
-              <span className="text-xs text-muted-foreground mt-1">per sale</span>
-            </div>
+        <div className="container mx-auto px-4 text-center max-w-4xl">
+          <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground mb-2">Tiered Commission Structure</h2>
+          <p className="text-muted-foreground mb-10">Sell more, earn more. Unlock higher commission rates as you grow.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {[
+              { tier: "Starter", range: "1–5 sales", rate: "15%", example: "₹75", highlight: false },
+              { tier: "Growing Seller", range: "6–10 sales", rate: "20%", example: "₹100", highlight: false },
+              { tier: "Pro Seller", range: "10+ sales", rate: "30%", example: "₹150", highlight: true },
+            ].map((t) => (
+              <Card key={t.tier} className={`border-border ${t.highlight ? "ring-2 ring-primary/30 border-primary/30" : ""}`}>
+                <CardContent className="p-6 text-center space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t.tier}</p>
+                  <p className="text-4xl font-bold text-primary">{t.rate}</p>
+                  <p className="text-sm text-muted-foreground">{t.range}/month</p>
+                  <div className="pt-2 border-t border-border mt-3">
+                    <p className="text-xs text-muted-foreground">On a ₹499 course</p>
+                    <p className="text-lg font-bold text-foreground">Earn {t.example}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
+          <p className="text-sm text-muted-foreground mt-6">Sales count resets monthly — compete again each month!</p>
         </div>
       </section>
 
