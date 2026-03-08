@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowRight, DollarSign, TrendingUp, BookOpen, BarChart3, Briefcase, Share2, CheckCircle2, Clock, XCircle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +40,7 @@ type AppStatus = "none" | "pending" | "approved" | "rejected";
 const CVBusiness = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const formRef = useRef<HTMLDivElement>(null);
   const [showForm, setShowForm] = useState(false);
   const [appStatus, setAppStatus] = useState<AppStatus>("none");
   const [adminNote, setAdminNote] = useState<string | null>(null);
@@ -76,6 +77,13 @@ const CVBusiness = () => {
     fetchApplication();
   }, [user, profile]);
 
+  // Scroll to form when it becomes visible
+  useEffect(() => {
+    if (showForm && formRef.current) {
+      formRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [showForm]);
+
   const toggleChannel = (id: string) => {
     setChannels((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
   };
@@ -105,14 +113,14 @@ const CVBusiness = () => {
       }
       return;
     }
-    setAppStatus("pending");
-    setShowForm(false);
     toast({ title: "Application Submitted!", description: "We'll review your application and get back to you soon." });
+    navigate("/reseller-dashboard");
   };
 
   const handleApplyClick = () => {
     if (!user) { navigate("/login"); return; }
     if (appStatus === "approved") { navigate("/reseller-dashboard"); return; }
+    if (appStatus === "pending") { navigate("/reseller-dashboard"); return; }
     setShowForm(true);
   };
 
@@ -196,42 +204,44 @@ const CVBusiness = () => {
 
         {/* Application Form */}
         {showForm && appStatus === "none" && (
-          <Card className="border-border mb-10 max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-xl font-bold text-foreground">Reseller Application</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="space-y-1.5">
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" maxLength={100} required />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">Email *</Label>
-                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" maxLength={255} required />
-                </div>
-                <div className="space-y-2">
-                  <Label>Where will you promote CourseVerse courses? *</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {promotionChannels.map((ch) => (
-                      <label key={ch.id} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox checked={channels.includes(ch.id)} onCheckedChange={() => toggleChannel(ch.id)} />
-                        <span className="text-sm text-foreground">{ch.label}</span>
-                      </label>
-                    ))}
+          <div ref={formRef}>
+            <Card className="border-border mb-10 max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-foreground">Reseller Application</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="fullName">Full Name *</Label>
+                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Your full name" maxLength={100} required />
                   </div>
-                  {channels.length === 0 && <p className="text-xs text-muted-foreground">Select at least one channel</p>}
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="strategy">Promotion Strategy (optional)</Label>
-                  <Textarea id="strategy" value={strategy} onChange={(e) => setStrategy(e.target.value)} placeholder="Briefly describe how you plan to promote courses..." rows={3} maxLength={500} />
-                </div>
-                <Button type="submit" disabled={submitting} className="gap-2 rounded-xl w-full">
-                  {submitting ? "Submitting..." : <><Send className="h-4 w-4" /> Submit Application</>}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email">Email *</Label>
+                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your@email.com" maxLength={255} required />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Where will you promote CourseVerse courses? *</Label>
+                    <div className="flex flex-wrap gap-3">
+                      {promotionChannels.map((ch) => (
+                        <label key={ch.id} className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox checked={channels.includes(ch.id)} onCheckedChange={() => toggleChannel(ch.id)} />
+                          <span className="text-sm text-foreground">{ch.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {channels.length === 0 && <p className="text-xs text-muted-foreground">Select at least one channel</p>}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="strategy">Promotion Strategy (optional)</Label>
+                    <Textarea id="strategy" value={strategy} onChange={(e) => setStrategy(e.target.value)} placeholder="Briefly describe how you plan to promote courses..." rows={3} maxLength={500} />
+                  </div>
+                  <Button type="submit" disabled={submitting} className="gap-2 rounded-xl w-full">
+                    {submitting ? "Submitting..." : <><Send className="h-4 w-4" /> Submit Application</>}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
 
