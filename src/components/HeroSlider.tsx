@@ -52,7 +52,7 @@ const HeroSlider = () => {
   const slide = slides[current];
 
   return (
-    <section className="relative overflow-hidden bg-hero-gradient">
+    <section className="relative overflow-hidden bg-hero-gradient mt-6">
       <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} transition-all duration-700`} />
       <div className="container mx-auto px-4 py-16 md:py-24 relative">
         <div className="max-w-3xl mx-auto text-center space-y-5 animate-fade-up" key={current}>

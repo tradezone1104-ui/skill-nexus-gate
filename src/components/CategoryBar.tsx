@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { categoryGroups, type CategoryGroup } from "@/data/categoryData";
+import { categoryGroups } from "@/data/categoryData";
 
 const CategoryBar = () => {
   const [openCategory, setOpenCategory] = useState<string | null>(null);
@@ -26,7 +26,7 @@ const CategoryBar = () => {
   };
 
   return (
-    <div className="relative border-b border-border bg-card">
+    <div className="relative border-b border-border bg-card z-40">
       <div className="container mx-auto px-4 relative">
         <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-card/90 p-1 rounded-r border-r border-border text-muted-foreground hover:text-foreground lg:hidden">
           <ChevronLeft className="h-4 w-4" />
@@ -37,9 +37,8 @@ const CategoryBar = () => {
             <div key={cat.id} className="relative">
               <button
                 onClick={() => setOpenCategory(openCategory === cat.id ? null : cat.id)}
-                className={`flex items-center gap-1 px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${openCategory === cat.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${openCategory === cat.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
               >
-                <span className="text-base">{cat.icon}</span>
                 <span>{cat.name}</span>
                 <ChevronDown className={`h-3 w-3 transition-transform ${openCategory === cat.id ? "rotate-180" : ""}`} />
               </button>
@@ -47,9 +46,12 @@ const CategoryBar = () => {
               {openCategory === cat.id && (
                 <div
                   ref={dropdownRef}
-                  className="absolute top-full left-0 mt-1 w-56 bg-card border border-border rounded-xl shadow-card py-2 z-50 animate-fade-in"
+                  className="absolute top-full left-0 mt-1 w-56 bg-popover border border-border rounded-[10px] py-4 z-[100] animate-fade-in"
+                  style={{
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+                  }}
                 >
-                  <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <div className="px-4 pb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {cat.name}
                   </div>
                   {cat.subcategories.map((sub) => (
@@ -57,16 +59,16 @@ const CategoryBar = () => {
                       key={sub.id}
                       to={`/courses?category=${cat.id}&sub=${sub.id}`}
                       onClick={() => setOpenCategory(null)}
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted transition-colors"
+                      className="block px-4 py-2 text-sm text-foreground hover:bg-muted hover:text-primary transition-colors rounded-md mx-2"
                     >
                       {sub.name}
                     </Link>
                   ))}
-                  <div className="border-t border-border mt-1 pt-1">
+                  <div className="border-t border-border mt-2 pt-2 mx-2">
                     <Link
                       to={`/courses?category=${cat.id}`}
                       onClick={() => setOpenCategory(null)}
-                      className="block px-4 py-2 text-sm text-primary font-medium hover:bg-muted transition-colors"
+                      className="block px-2 py-2 text-sm text-primary font-medium hover:bg-muted transition-colors rounded-md"
                     >
                       View All {cat.name} →
                     </Link>
