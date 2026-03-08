@@ -335,7 +335,7 @@ const Checkout = () => {
                   </div>
                 )}
                 {useCoins && coinDiscount > 0 && (
-                  <div className="flex justify-between text-yellow-500">
+                  <div className="flex justify-between text-[hsl(var(--warning))]">
                     <span>CV Coins ({coinDiscount})</span>
                     <span>-₹{coinDiscount}</span>
                   </div>
