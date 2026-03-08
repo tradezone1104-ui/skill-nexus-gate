@@ -149,25 +149,27 @@ const Subscribe = () => {
 
       {/* Pricing */}
       <section id="pricing" className="py-16 md:py-24 container mx-auto px-4">
-        <h2 className="font-display font-bold text-3xl md:text-4xl text-center text-foreground mb-4">
-          Choose Your Plan
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-center text-foreground mb-12">
+          Choose a plan that works for you
         </h2>
-        <p className="text-center text-muted-foreground mb-12 max-w-lg mx-auto">
-          Start learning today with our affordable premium plans
-        </p>
         <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 max-w-[880px] mx-auto">
-          {/* Monthly */}
-          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 bg-card rounded-2xl border border-border p-8 flex flex-col" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
-            <div className="space-y-4">
-              <h3 className="font-display font-semibold text-xl text-foreground">Monthly Plan</h3>
+          {/* Premium - Left Card */}
+          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 rounded-2xl border-2 border-primary p-8 flex flex-col relative bg-card" style={{ boxShadow: "0 12px 32px hsl(var(--primary) / 0.12)" }}>
+            <div className="absolute -top-0.5 left-0 right-0 h-1.5 rounded-t-2xl bg-primary" />
+            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground font-semibold px-4 py-1 text-xs">
+              Best Value
+            </Badge>
+            <div className="space-y-3 mt-2">
+              <h3 className="font-display font-bold text-xl text-foreground">CourseVerse Premium</h3>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-medium text-muted-foreground">₹</span>
-                <span className="font-display font-semibold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>333</span>
+                <span className="font-display font-bold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>333</span>
                 <span className="text-muted-foreground text-sm ml-1">/month</span>
               </div>
+              <p className="text-sm text-muted-foreground">Billed monthly or annually. Cancel anytime.</p>
             </div>
             <ul className="space-y-3 flex-1 mt-6">
-              {["Access to 2000+ courses", "New courses added regularly", "Beginner to advanced content", "Cancel anytime", "Priority support"].map((f) =>
+              {["Access to 2000+ trading courses", "New courses added regularly", "Beginner to advanced content", "Cancel anytime", "Priority support"].map((f) =>
               <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   {f}
@@ -175,29 +177,26 @@ const Subscribe = () => {
               )}
             </ul>
             <Button
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 rounded-[10px] mt-6"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-12 rounded-[10px] mt-6 text-base"
               onClick={() => handleSubscribe("monthly")}
               disabled={loading === "monthly" || isSubscribed}>
-              {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Get Monthly Plan"}
+              {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Start Subscription"}
             </Button>
           </div>
 
-          {/* Yearly */}
-          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 bg-card rounded-2xl border-2 border-primary p-8 flex flex-col relative" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
-            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
-              Most Popular
-            </Badge>
-            <div className="space-y-4">
-              <h3 className="font-display font-semibold text-xl text-foreground">Yearly Plan</h3>
+          {/* Individual Courses - Right Card */}
+          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 rounded-2xl border border-border p-8 flex flex-col bg-card" style={{ boxShadow: "0 4px 16px hsl(var(--muted) / 0.15)" }}>
+            <div className="space-y-3">
+              <h3 className="font-display font-bold text-xl text-foreground">Individual Courses</h3>
+              <p className="text-sm text-muted-foreground">Learn anything</p>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-medium text-muted-foreground">₹</span>
-                <span className="font-display font-semibold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>3,999</span>
-                <span className="text-muted-foreground text-sm ml-1">/year</span>
+                <span className="font-display font-bold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>99 – 1,999</span>
               </div>
-              <p className="text-sm text-primary font-medium">Save 33% compared to monthly</p>
+              <p className="text-sm text-muted-foreground">One time purchase</p>
             </div>
             <ul className="space-y-3 flex-1 mt-6">
-              {["Everything included in monthly plan", "Save more compared to monthly", "Premium member badge", "Early access to new courses"].map((f) =>
+              {["2000+ trading courses available", "Pay as you go"].map((f) =>
               <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   {f}
@@ -205,10 +204,10 @@ const Subscribe = () => {
               )}
             </ul>
             <Button
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 rounded-[10px] mt-6"
-              onClick={() => handleSubscribe("yearly")}
-              disabled={loading === "yearly" || isSubscribed}>
-              {isSubscribed ? "Already Subscribed" : loading === "yearly" ? "Processing..." : "Get Yearly Plan"}
+              variant="outline"
+              className="w-full border-border text-foreground hover:bg-accent font-semibold h-12 rounded-[10px] mt-6 text-base"
+              onClick={() => navigate("/courses")}>
+              Browse Courses
             </Button>
           </div>
         </div>
