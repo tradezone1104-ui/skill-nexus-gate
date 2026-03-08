@@ -6,8 +6,9 @@ import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
-import { courses, getFeaturedCourses } from "@/data/courses";
+import { courses, getFeaturedCourses, getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 const stats = [
   { icon: BookOpen, value: "2,000+", label: "Courses" },
