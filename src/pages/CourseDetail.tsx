@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Star, Users, Clock, BookOpen, CheckCircle, MessageCircle, Heart,
   ShoppingCart, Play, ChevronDown, ChevronUp, Globe, Calendar, Award,
-  Shield, Lock, Timer, Gift, Share2
+  Shield, Lock, Timer, Gift, Share2, Crown, Tag
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +25,35 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+
+/* ── Scroll-reveal hook ── */
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setVisible(true); io.unobserve(el); } },
+      { threshold: 0.08 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return { ref, className: visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5", style: { transition: "opacity 0.5s ease, transform 0.5s ease" } };
+}
+
+function RevealSection({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  const reveal = useScrollReveal();
+  return (
+    <div ref={reveal.ref} className={`${reveal.className} ${className}`} style={reveal.style}>
+      {children}
+    </div>
+  );
+}
 
 // Generate deterministic fake course sections from course data
 function generateSections(course: ReturnType<typeof getCourseById>) {
@@ -134,15 +162,12 @@ const CourseDetail = () => {
   const wishlisted = isWishlisted(course.id);
   const inCart = isInCart(course.id);
 
-  // Find category & subcategory names
   const catGroup = categoryGroups.find(g => g.id === course.category);
   const catName = catGroup?.name || course.category;
   const subCat = catGroup?.subcategories.find(s => s.id === course.subcategory);
   const subName = subCat?.name || course.subcategory;
 
-  // Fake countdown
   const daysLeft = (parseInt(course.id.replace("course-", ""), 10) % 5) + 1;
-
   const totalLectures = sections.reduce((s, sec) => s + sec.lectures.length, 0);
 
   const learningPoints = [
@@ -163,7 +188,6 @@ const CourseDetail = () => {
     "Willingness to practice and learn consistently",
   ];
 
-  // Updated date
   const updateMonth = ["January", "February", "March"][(parseInt(course.id.replace("course-", ""), 10)) % 3];
 
   const handleBuyNow = () => {
@@ -187,7 +211,6 @@ const CourseDetail = () => {
       {/* Dark hero header */}
       <div className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-6 lg:py-10">
-          {/* Breadcrumb */}
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>
@@ -255,20 +278,22 @@ const CourseDetail = () => {
           {/* ===== LEFT SIDE ===== */}
           <div className="lg:col-span-2 space-y-8">
             {/* What you will learn */}
-            <div className="border border-border rounded-lg p-6">
-              <h2 className="font-display font-bold text-xl text-foreground mb-4">What you'll learn</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {learningPoints.map((point, i) => (
-                  <div key={i} className="flex items-start gap-2">
-                    <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm text-muted-foreground">{point}</span>
-                  </div>
-                ))}
+            <RevealSection>
+              <div className="border border-border rounded-lg p-6">
+                <h2 className="font-display font-bold text-xl text-foreground mb-4">What you'll learn</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {learningPoints.map((point, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-muted-foreground">{point}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </RevealSection>
 
             {/* Course Content */}
-            <div>
+            <RevealSection>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="font-display font-bold text-xl text-foreground">Course Content</h2>
@@ -316,10 +341,10 @@ const CourseDetail = () => {
                   </AccordionItem>
                 ))}
               </Accordion>
-            </div>
+            </RevealSection>
 
             {/* Requirements */}
-            <div>
+            <RevealSection>
               <h2 className="font-display font-bold text-xl text-foreground mb-4">Requirements</h2>
               <ul className="space-y-2">
                 {requirements.map((req, i) => (
@@ -329,10 +354,10 @@ const CourseDetail = () => {
                   </li>
                 ))}
               </ul>
-            </div>
+            </RevealSection>
 
             {/* Description */}
-            <div>
+            <RevealSection>
               <h2 className="font-display font-bold text-xl text-foreground mb-4">Description</h2>
               <div className={`text-sm text-muted-foreground leading-relaxed whitespace-pre-line ${!showFullDesc ? "line-clamp-6" : ""}`}>
                 {course.longDescription}
@@ -345,10 +370,10 @@ const CourseDetail = () => {
                 {showFullDesc ? "Show less" : "Show more"}
                 {showFullDesc ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </button>
-            </div>
+            </RevealSection>
 
             {/* Instructor */}
-            <div>
+            <RevealSection>
               <h2 className="font-display font-bold text-xl text-foreground mb-4">Instructor</h2>
               <Link to={`/courses?q=${course.instructor}`} className="text-secondary hover:underline font-semibold text-lg">
                 {course.instructor}
@@ -371,22 +396,33 @@ const CourseDetail = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </RevealSection>
 
             {/* Reviews */}
-            <CourseReviews courseId={course.id} />
+            <RevealSection>
+              <CourseReviews courseId={course.id} />
+            </RevealSection>
           </div>
 
-          {/* ===== RIGHT SIDE — STICKY CARD ===== */}
+          {/* ===== RIGHT SIDE — STICKY PURCHASE CARD ===== */}
           <div className="hidden lg:block lg:col-span-1">
-            {/* Sentinel element to track thumbnail visibility */}
             <div ref={thumbnailRef} className="h-0" />
 
-            <div className={`sticky top-20 transition-all duration-300 ${isSticky ? "top-20" : ""}`}>
-              <div className="bg-card rounded-xl border border-border overflow-hidden shadow-card">
-                {/* Thumbnail - only visible when not sticky */}
-                {!isSticky && (
-                  <div className="aspect-video relative overflow-hidden">
+            <div
+              className="sticky top-20"
+              style={{ transition: "box-shadow 0.3s ease" }}
+            >
+              <div className={`bg-card rounded-xl border border-border overflow-hidden transition-shadow duration-300 ${isSticky ? "shadow-lg" : "shadow-card"}`}>
+                {/* Thumbnail — hides when sticky */}
+                <div
+                  className="overflow-hidden transition-all duration-400 ease-in-out"
+                  style={{
+                    maxHeight: isSticky ? 0 : 300,
+                    opacity: isSticky ? 0 : 1,
+                    transition: "max-height 0.4s ease, opacity 0.3s ease",
+                  }}
+                >
+                  <div className="aspect-video relative">
                     <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-background/30 flex items-center justify-center">
                       <div className="h-14 w-14 rounded-full bg-background/80 flex items-center justify-center">
@@ -394,10 +430,11 @@ const CourseDetail = () => {
                       </div>
                     </div>
                   </div>
-                )}
+                </div>
 
-                <div className="p-5 space-y-3">
+                <div className="p-5 space-y-4">
                   {hasAccess ? (
+                    /* ── Owned / Subscribed state ── */
                     <div className="space-y-3">
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 text-center">
                         <CheckCircle className="h-8 w-8 text-primary mx-auto mb-2" />
@@ -412,100 +449,105 @@ const CourseDetail = () => {
                     </div>
                   ) : (
                     <>
-                      {/* Pricing */}
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-display font-bold text-3xl text-foreground">₹{course.price}</span>
-                          <span className="text-lg text-muted-foreground line-through">₹{course.originalPrice}</span>
-                          <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-xs">{discount}% off</Badge>
+                      {/* ── 1. SUBSCRIPTION BANNER ── */}
+                      <div className="space-y-3 text-center">
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                          <Crown className="h-3.5 w-3.5 text-warning" />
+                          <span>This course is included in Premium</span>
                         </div>
-                        <div className="flex items-center gap-1.5 mt-2 text-destructive text-xs font-medium">
-                          <Timer className="h-3.5 w-3.5" />
-                          <span>{daysLeft} day{daysLeft > 1 ? "s" : ""} left at this price!</span>
-                        </div>
-                      </div>
-
-                      {/* Buttons */}
-                      <Button
-                        onClick={handleBuyNow}
-                        size="lg"
-                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-glow"
-                      >
-                        Buy Now — ₹{course.price}
-                      </Button>
-
-                      <Button
-                        onClick={() => addToCart(course.id)}
-                        size="lg"
-                        variant="outline"
-                        className="w-full font-semibold"
-                        disabled={inCart}
-                      >
-                        <ShoppingCart className="mr-2 h-4 w-4" />
-                        {inCart ? "Already in Cart" : "Add to Cart"}
-                      </Button>
-
-                      {/* Icon row: Wishlist, Share, Gift */}
-                      <div className="flex items-center justify-center gap-6 py-1">
-                        <button
-                          onClick={() => toggleWishlist(course.id)}
-                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <Heart className={`h-4 w-4 ${wishlisted ? "fill-destructive text-destructive" : ""}`} />
-                          Wishlist
-                        </button>
-                        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                          <Gift className="h-4 w-4" />
-                          Gift
-                        </button>
-                        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                          <Share2 className="h-4 w-4" />
-                          Share
-                        </button>
-                      </div>
-
-                      <Separator />
-
-                      {/* Subscribe banner */}
-                      <div className="text-center space-y-2 py-1">
-                        <p className="text-xs text-muted-foreground">This course is included in Premium</p>
+                        <p className="font-display font-bold text-base text-foreground leading-tight">
+                          Subscribe to CourseVerse Premium
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Get this course plus 2000+ top courses
+                        </p>
                         <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full border-primary text-primary hover:bg-primary/10 font-semibold text-xs"
+                          size="lg"
+                          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                           onClick={() => navigate("/subscribe")}
                         >
-                          Start Subscription — ₹499/month
+                          Start Subscription
                         </Button>
-                        <p className="text-[11px] text-muted-foreground">Access 2000+ courses</p>
+                        <p className="text-xs text-muted-foreground">₹499/month or ₹3,999/year</p>
+                        <p className="text-[11px] text-muted-foreground/70">Cancel anytime</p>
                       </div>
 
-                      <Separator />
+                      {/* ── 2. OR DIVIDER ── */}
+                      <div className="flex items-center gap-3">
+                        <Separator className="flex-1" />
+                        <span className="text-xs text-muted-foreground font-medium">or</span>
+                        <Separator className="flex-1" />
+                      </div>
 
-                      {/* 30-day guarantee */}
-                      <p className="text-xs text-muted-foreground text-center">30-day money-back guarantee</p>
-                    </>
-                  )}
-
-                  {/* Course includes - only when not sticky or has access */}
-                  {(!isSticky || hasAccess) && (
-                    <div className="border-t border-border pt-4">
-                      <p className="text-sm font-semibold text-foreground mb-3">This course includes:</p>
-                      <div className="space-y-2.5">
-                        {[
-                          { icon: BookOpen, text: `${course.lessons} video lessons` },
-                          { icon: Clock, text: `${course.duration} of content` },
-                          { icon: Shield, text: "Full lifetime access" },
-                          { icon: MessageCircle, text: "Telegram community access" },
-                          { icon: Award, text: "Certificate of completion" },
-                        ].map(({ icon: Icon, text }, i) => (
-                          <div key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                            <Icon className="h-4 w-4 shrink-0" />
-                            <span>{text}</span>
+                      {/* ── 3. INDIVIDUAL PURCHASE ── */}
+                      <div className="space-y-3">
+                        {/* Price */}
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <span className="font-display font-bold text-3xl text-foreground">₹{course.price}</span>
+                            <span className="text-base text-muted-foreground line-through">₹{course.originalPrice}</span>
+                            <Badge className="bg-destructive/20 text-destructive border-destructive/30 text-xs">{discount}% off</Badge>
                           </div>
-                        ))}
+                          <div className="flex items-center gap-1.5 mt-1.5 text-warning text-xs font-medium">
+                            <Timer className="h-3.5 w-3.5" />
+                            <span>{daysLeft} day{daysLeft > 1 ? "s" : ""} left at this price!</span>
+                          </div>
+                        </div>
+
+                        {/* Add to Cart + Wishlist row */}
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => addToCart(course.id)}
+                            size="lg"
+                            variant="outline"
+                            className="flex-1 font-semibold"
+                            disabled={inCart}
+                          >
+                            <ShoppingCart className="mr-2 h-4 w-4" />
+                            {inCart ? "In Cart" : "Add to Cart"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="px-3"
+                            onClick={() => toggleWishlist(course.id)}
+                          >
+                            <Heart className={`h-5 w-5 ${wishlisted ? "fill-destructive text-destructive" : ""}`} />
+                          </Button>
+                        </div>
+
+                        {/* Buy Now */}
+                        <Button
+                          onClick={handleBuyNow}
+                          size="lg"
+                          className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-glow"
+                        >
+                          Buy Now — ₹{course.price}
+                        </Button>
+
+                        {/* Guarantee texts */}
+                        <div className="text-center space-y-0.5">
+                          <p className="text-[11px] text-muted-foreground">30-Day Money-Back Guarantee</p>
+                          <p className="text-[11px] text-muted-foreground">Full Lifetime Access</p>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* ── 4. BOTTOM LINKS ── */}
+                      <Separator />
+                      <div className="flex items-center justify-center gap-1 text-[11px]">
+                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                          <Share2 className="h-3 w-3" /> Share
+                        </button>
+                        <span className="text-border">|</span>
+                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                          <Gift className="h-3 w-3" /> Gift this Course
+                        </button>
+                        <span className="text-border">|</span>
+                        <button className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                          <Tag className="h-3 w-3" /> Apply Coupon
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -515,12 +557,12 @@ const CourseDetail = () => {
 
         {/* Related */}
         {related.length > 0 && (
-          <div className="mt-16">
+          <RevealSection className="mt-16">
             <h2 className="font-display font-bold text-2xl text-foreground mb-6">Students also bought</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {related.map(c => <CourseCard key={c.id} course={c} />)}
             </div>
-          </div>
+          </RevealSection>
         )}
       </div>
 
