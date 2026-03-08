@@ -57,85 +57,85 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass border-b border-border">
-      <div className="container mx-auto px-4 h-16 flex items-center gap-2">
-        {/* Logo */}
+    <nav className="sticky top-0 z-50 bg-background border-b border-border">
+      <div className="max-w-[1200px] mx-auto px-4 h-16 flex items-center">
+        {/* Logo - far left */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-display font-bold text-sm">CV</span>
+            <span className="text-primary-foreground font-bold text-sm tracking-tight">CV</span>
           </div>
-          <span className="font-display font-bold text-lg text-foreground hidden sm:block">CourseVerse</span>
+          <span className="font-bold text-lg text-foreground hidden sm:block tracking-tight">CourseVerse</span>
         </Link>
 
-        {/* Always-visible nav links */}
-        <div className="hidden lg:flex items-center gap-1 ml-4">
+        {/* Nav links */}
+        <div className="hidden lg:flex items-center gap-1 ml-6">
           <Link to="/free-learning">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
               Free Learning
             </Button>
           </Link>
           <Link to="/subscribe">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
               Subscribe
             </Button>
           </Link>
         </div>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-lg mx-4">
+        {/* Search - centered */}
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-auto">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search for courses"
-              className="pl-10 bg-muted border-border focus:border-primary"
+              className="pl-10 bg-muted border-border focus:border-primary h-10 text-sm"
             />
           </div>
         </form>
 
-        {/* Logged-in only nav links */}
+        {/* Logged-in nav links */}
         {isLoggedIn && (
-          <div className="hidden lg:flex items-center gap-1 ml-auto">
+          <div className="hidden lg:flex items-center gap-1">
             <Link to="/cv-business">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
                 CV Business
               </Button>
             </Link>
             <Link to="/exchange">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
                 Exchange
               </Button>
             </Link>
             <Link to="/my-learning">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
                 My Learning
               </Button>
             </Link>
           </div>
         )}
 
-        {/* Right side icons */}
-        <div className="flex items-center gap-1 ml-auto lg:ml-2">
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground">
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        {/* Right side */}
+        <div className="flex items-center gap-1 ml-auto">
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground h-9 w-9">
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
 
           {isLoggedIn ? (
             <>
               <Link to="/wishlist">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <Heart className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                  <Heart className="h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/cart">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <ShoppingCart className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                  <ShoppingCart className="h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/notifications" className="hidden md:inline-flex">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                  <Bell className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                  <Bell className="h-4 w-4" />
                 </Button>
               </Link>
 
@@ -145,9 +145,9 @@ const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground h-9 w-9"
                 >
-                  <User className="h-5 w-5" />
+                  <User className="h-4 w-4" />
                 </Button>
                 {profileOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-card py-2 animate-fade-in z-50">
@@ -175,13 +175,13 @@ const Navbar = () => {
           ) : (
             <div className="hidden md:flex items-center gap-2 ml-2">
               <Link to="/login">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1.5">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground gap-1.5 text-sm font-medium">
                   <LogIn className="h-4 w-4" />
                   Login
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5">
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 text-sm font-medium">
                   <UserPlus className="h-4 w-4" />
                   Sign Up
                 </Button>
@@ -190,7 +190,7 @@ const Navbar = () => {
           )}
 
           {/* Mobile menu toggle */}
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
+          <Button variant="ghost" size="icon" className="lg:hidden h-9 w-9" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
@@ -206,24 +206,24 @@ const Navbar = () => {
             </div>
           </form>
           <div className="flex flex-col gap-1">
-            <Link to="/free-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Free Learning</Link>
-            <Link to="/subscribe" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Subscribe</Link>
+            <Link to="/free-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Free Learning</Link>
+            <Link to="/subscribe" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Subscribe</Link>
             {isLoggedIn ? (
               <>
-                <Link to="/cv-business" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">CV Business</Link>
-                <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Exchange Courses</Link>
-                <Link to="/my-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">My Learning</Link>
-                <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Wishlist</Link>
-                <Link to="/cart" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Cart</Link>
-                <Link to="/settings" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Account Settings</Link>
+                <Link to="/cv-business" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">CV Business</Link>
+                <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Exchange Courses</Link>
+                <Link to="/my-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">My Learning</Link>
+                <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Wishlist</Link>
+                <Link to="/cart" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Cart</Link>
+                <Link to="/settings" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Account Settings</Link>
               </>
             ) : (
               <>
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Login</Link>
-                <Link to="/signup" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-primary font-semibold hover:bg-muted transition-colors">Sign Up</Link>
+                <Link to="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Login</Link>
+                <Link to="/signup" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-primary font-semibold hover:bg-muted transition-colors text-sm">Sign Up</Link>
               </>
             )}
-            <Link to="/courses" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors">Explore All Courses</Link>
+            <Link to="/courses" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Explore All Courses</Link>
           </div>
         </div>
       )}
