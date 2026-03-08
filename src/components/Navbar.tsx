@@ -103,20 +103,18 @@ const Navbar = () => {
             </div>
             <span className="font-bold text-lg text-foreground hidden sm:block tracking-tight">CourseVerse</span>
           </Link>
-          {!isLoggedIn && (
-            <div className="hidden lg:flex items-center gap-1">
-              <Link to="/free-learning">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                  Free Learning
-                </Button>
-              </Link>
-              <Link to="/subscribe">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                  Subscribe
-                </Button>
-              </Link>
-            </div>
-          )}
+          <div className="hidden lg:flex items-center gap-1">
+            <Link to="/free-learning">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                Free Learning
+              </Button>
+            </Link>
+            <Link to="/subscribe">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                Subscribe
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Center: Search bar */}
