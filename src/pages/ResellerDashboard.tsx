@@ -152,7 +152,7 @@ const ResellerDashboard = () => {
                     <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${r.rank <= 3 ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}>
                       {r.rank}
                     </span>
-                    <span className="text-sm font-medium text-foreground">{r.name}</span>
+                    <span className="text-sm font-medium text-foreground">Seller {r.id}</span>
                   </div>
                   <span className="text-sm font-semibold text-foreground">{r.earnings}</span>
                 </div>
