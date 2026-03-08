@@ -94,29 +94,27 @@ const Navbar = () => {
           </div>
         </form>
 
-        {/* Logged-in nav links */}
-        {isLoggedIn && (
-          <div className="hidden lg:flex items-center gap-1">
-            <Link to="/cv-business">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                CV Business
-              </Button>
-            </Link>
-            <Link to="/exchange">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                Exchange
-              </Button>
-            </Link>
-            <Link to="/my-learning">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                My Learning
-              </Button>
-            </Link>
-          </div>
-        )}
-
-        {/* Right side */}
-        <div className="flex items-center gap-1 ml-auto">
+        {/* Right: Auth buttons & icons */}
+        <div className="flex items-center gap-1 shrink-0">
+          {isLoggedIn && (
+            <div className="hidden lg:flex items-center gap-1 mr-1">
+              <Link to="/cv-business">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  CV Business
+                </Button>
+              </Link>
+              <Link to="/exchange">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  Exchange
+                </Button>
+              </Link>
+              <Link to="/my-learning">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  My Learning
+                </Button>
+              </Link>
+            </div>
+          )}
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground h-9 w-9">
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
