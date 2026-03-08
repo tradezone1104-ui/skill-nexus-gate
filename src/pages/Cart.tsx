@@ -1,14 +1,21 @@
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import { useCartContext } from "@/contexts/CartContext";
 import { getCourseById } from "@/data/courses";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const Cart = () => {
   const { cartIds, loading, removeFromCart } = useCartContext();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [checkingOut, setCheckingOut] = useState(false);
   const courses = Array.from(cartIds)
     .map(getCourseById)
     .filter(Boolean);
