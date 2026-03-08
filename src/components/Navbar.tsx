@@ -57,8 +57,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="max-w-[1200px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
+    <nav className="sticky top-0 z-50 bg-background border-b border-border w-full">
+      <div className="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Logo + Nav links */}
         <div className="flex items-center gap-1 shrink-0">
           <Link to="/" className="flex items-center gap-2 shrink-0 mr-4">
@@ -82,7 +82,7 @@ const Navbar = () => {
         </div>
 
         {/* Center: Search bar */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[600px]">
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[600px] mx-10">
           <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
