@@ -33,11 +33,13 @@ const profileMenuItems = [
   { label: "Help and Support", to: "/support" },
 ];
 
-const notificationItems = [
-  { id: 1, title: "New course added", desc: "Options Trading Masterclass is now available", time: "2h ago" },
-  { id: 2, title: "Subscription reminder", desc: "Your premium membership renews in 3 days", time: "1d ago" },
-  { id: 3, title: "Discount offer", desc: "Get 40% off on all trading bundles this weekend", time: "2d ago" },
-];
+const notifIconMap: Record<string, React.ElementType> = {
+  bell: Bell,
+  "book-open": BookOpen,
+  "dollar-sign": DollarSign,
+  tag: Tag,
+  "refresh-cw": RefreshCw,
+};
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name || !name.trim()) return "U";
