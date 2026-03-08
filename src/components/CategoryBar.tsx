@@ -9,15 +9,17 @@ const CategoryBar = () => {
   const barRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const catRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseEnter = (catId: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setHoveredCategory(catId);
-    // Calculate arrow position
     const el = catRefs.current[catId];
-    if (el) {
-      const rect = el.getBoundingClientRect();
-      setArrowLeft(rect.left + rect.width / 2);
+    const container = containerRef.current;
+    if (el && container) {
+      const elRect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      setArrowLeft(elRect.left - containerRect.left + elRect.width / 2);
     }
   };
 
@@ -36,7 +38,7 @@ const CategoryBar = () => {
   const activeCat = categoryGroups.find((c) => c.id === hoveredCategory);
 
   return (
-    <div className="relative z-40" onMouseLeave={handleMouseLeave}>
+    <div ref={containerRef} className="relative z-40" onMouseLeave={handleMouseLeave}>
       {/* Main category bar */}
       <div className="border-b border-border bg-card">
         <div className="max-w-[1200px] mx-auto px-4 relative">
@@ -72,17 +74,13 @@ const CategoryBar = () => {
         </div>
       </div>
 
-      {/* Arrow indicator + Subcategory bar */}
+      {/* Overlay: arrow + subcategory bar */}
       {activeCat && (
-        <>
+        <div className="absolute top-full left-0 w-full z-50" onMouseEnter={handleSubbarEnter}>
           {/* Triangle arrow */}
           <div
-            className="absolute z-50"
-            style={{
-              left: `${arrowLeft}px`,
-              top: "100%",
-              transform: "translateX(-50%) translateY(-1px)",
-            }}
+            className="absolute -top-[8px]"
+            style={{ left: `${arrowLeft}px`, transform: "translateX(-50%)" }}
           >
             <div
               className="w-0 h-0"
@@ -96,12 +94,8 @@ const CategoryBar = () => {
 
           {/* Subcategory bar */}
           <div
-            onMouseEnter={handleSubbarEnter}
             className="animate-fade-in"
-            style={{
-              background: "hsl(222 47% 11%)",
-              height: "48px",
-            }}
+            style={{ background: "hsl(222 47% 11%)", height: "48px" }}
           >
             <div className="max-w-[1200px] mx-auto px-4 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
               {activeCat.subcategories.map((sub) => (
@@ -118,7 +112,7 @@ const CategoryBar = () => {
               ))}
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

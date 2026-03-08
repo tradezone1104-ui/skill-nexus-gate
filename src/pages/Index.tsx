@@ -21,9 +21,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <CategoryBar />
-      <div className="pt-6">
-        <HeroSlider />
-      </div>
+      <HeroSlider />
 
       {/* Stats */}
       <section className="container mx-auto px-4 py-10">
