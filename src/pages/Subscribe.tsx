@@ -160,17 +160,18 @@ const Subscribe = () => {
         <p className="text-center text-muted-foreground mb-12 max-w-lg mx-auto">
           Start learning today with our affordable premium plans
         </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        <div className="flex flex-col md:flex-row justify-center items-stretch gap-8 max-w-[880px] mx-auto">
           {/* Monthly */}
-          <div className="bg-card rounded-2xl border border-border p-8 space-y-6 flex flex-col">
-            <div>
-              <h3 className="font-display font-bold text-xl text-foreground">Monthly Plan</h3>
-              <div className="mt-3">
-                <span className="font-display font-extrabold text-4xl text-foreground">₹499</span>
-                <span className="text-muted-foreground ml-1">/month</span>
+          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 bg-card rounded-2xl border border-border p-8 flex flex-col" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.08)" }}>
+            <div className="space-y-4">
+              <h3 className="font-display font-semibold text-xl text-foreground">Monthly Plan</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-medium text-muted-foreground">₹</span>
+                <span className="font-display font-semibold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>499</span>
+                <span className="text-muted-foreground text-sm ml-1">/month</span>
               </div>
             </div>
-            <ul className="space-y-3 flex-1">
+            <ul className="space-y-3 flex-1 mt-6">
               {["Access to 2000+ courses", "New courses added regularly", "Beginner to advanced content", "Cancel anytime", "Priority support"].map((f) =>
               <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -179,28 +180,28 @@ const Subscribe = () => {
               )}
             </ul>
             <Button
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 rounded-[10px] mt-6"
               onClick={() => handleSubscribe("monthly")}
               disabled={loading === "monthly" || isSubscribed}>
-              
               {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Get Monthly Plan"}
             </Button>
           </div>
 
           {/* Yearly */}
-          <div className="bg-card rounded-2xl border-2 border-primary p-8 space-y-6 flex flex-col relative shadow-glow">
-            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground font-bold px-4 py-1">
+          <div className="flex-1 max-w-[420px] mx-auto md:mx-0 bg-card rounded-2xl border-2 border-primary p-8 flex flex-col relative" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
+            <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground font-semibold px-3 py-1 text-xs">
               Most Popular
             </Badge>
-            <div>
-              <h3 className="font-display font-bold text-xl text-foreground">Yearly Plan</h3>
-              <div className="mt-3">
-                <span className="font-display font-extrabold text-4xl text-foreground">₹3,999</span>
-                <span className="text-muted-foreground ml-1">/year</span>
+            <div className="space-y-4">
+              <h3 className="font-display font-semibold text-xl text-foreground">Yearly Plan</h3>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-medium text-muted-foreground">₹</span>
+                <span className="font-display font-semibold text-[40px] leading-none tracking-tight text-foreground" style={{ letterSpacing: "-0.5px" }}>3,999</span>
+                <span className="text-muted-foreground text-sm ml-1">/year</span>
               </div>
-              <p className="text-sm text-primary font-semibold mt-1">Save 33% compared to monthly</p>
+              <p className="text-sm text-primary font-medium">Save 33% compared to monthly</p>
             </div>
-            <ul className="space-y-3 flex-1">
+            <ul className="space-y-3 flex-1 mt-6">
               {["Everything included in monthly plan", "Save more compared to monthly", "Premium member badge", "Early access to new courses"].map((f) =>
               <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
@@ -209,10 +210,9 @@ const Subscribe = () => {
               )}
             </ul>
             <Button
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 shadow-glow"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-11 rounded-[10px] mt-6"
               onClick={() => handleSubscribe("yearly")}
               disabled={loading === "yearly" || isSubscribed}>
-              
               {isSubscribed ? "Already Subscribed" : loading === "yearly" ? "Processing..." : "Get Yearly Plan"}
             </Button>
           </div>
