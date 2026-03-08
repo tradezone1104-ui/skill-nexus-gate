@@ -77,6 +77,7 @@ const App = () => (
                   <Route path="/settings/:section" element={<AccountSettings />} />
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/cv-coins" element={<CvCoins />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />

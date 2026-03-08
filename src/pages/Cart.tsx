@@ -1,11 +1,13 @@
-import { ShoppingCart, Trash2, CheckCircle } from "lucide-react";
+import { ShoppingCart, Trash2, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import { useCartContext } from "@/contexts/CartContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
+import { useCvCoins } from "@/hooks/useCvCoins";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +20,9 @@ const Cart = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [checkingOut, setCheckingOut] = useState(false);
+  const { balance, spendCoins } = useCvCoins();
+  const [coinsToUse, setCoinsToUse] = useState(0);
+
   const courses = Array.from(cartIds)
     .map(getCourseById)
     .filter(Boolean)
@@ -26,6 +31,8 @@ const Cart = () => {
   const totalPrice = courses.reduce((sum, c) => sum + (c?.price ?? 0), 0);
   const totalOriginal = courses.reduce((sum, c) => sum + (c?.originalPrice ?? 0), 0);
   const totalSavings = totalOriginal - totalPrice;
+  const maxCoins = Math.min(balance, totalPrice);
+  const finalPrice = totalPrice - coinsToUse;
 
   return (
     <div className="min-h-screen bg-background">
@@ -101,9 +108,48 @@ const Cart = () => {
                     <span>Discount</span>
                     <span>-₹{totalSavings.toLocaleString()}</span>
                   </div>
+
+                  {/* CV Coins Section */}
+                  {user && balance > 0 && (
+                    <div className="border-t border-border pt-3 space-y-2">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Coins className="h-4 w-4 text-primary" />
+                        <span className="text-xs">You have <strong className="text-foreground">{balance}</strong> CV Coins</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={maxCoins}
+                          value={coinsToUse || ""}
+                          onChange={(e) => {
+                            const v = Math.min(Math.max(0, Number(e.target.value)), maxCoins);
+                            setCoinsToUse(v);
+                          }}
+                          placeholder="Coins to use"
+                          className="h-8 text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="shrink-0 h-8 text-xs"
+                          onClick={() => setCoinsToUse(maxCoins)}
+                        >
+                          Use Max
+                        </Button>
+                      </div>
+                      {coinsToUse > 0 && (
+                        <div className="flex justify-between text-primary font-medium">
+                          <span>CV Coins ({coinsToUse})</span>
+                          <span>-₹{coinsToUse.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="border-t border-border pt-2 flex justify-between text-foreground font-bold text-lg">
                     <span>Total</span>
-                    <span>₹{totalPrice.toLocaleString()}</span>
+                    <span>₹{finalPrice.toLocaleString()}</span>
                   </div>
                 </div>
                 <Button
@@ -113,14 +159,18 @@ const Cart = () => {
                     if (!user) { navigate("/login"); return; }
                     setCheckingOut(true);
                     try {
+                      // Spend coins first if any
+                      if (coinsToUse > 0) {
+                        const ok = await spendCoins(coinsToUse, `Checkout discount on ${courses.length} course(s)`);
+                        if (!ok) throw new Error("Failed to apply CV Coins");
+                      }
                       const rows = courses.map((c) => ({
                         user_id: user.id,
                         course_id: c!.id,
-                        price_paid: c!.price,
+                        price_paid: c!.price - (coinsToUse / courses.length),
                       }));
                       const { error } = await supabase.from("purchases").insert(rows);
                       if (error) throw error;
-                      // Clear cart after purchase
                       for (const c of courses) await removeFromCart(c!.id);
                       addPurchasedIds(courses.map((c) => c!.id));
                       toast.success("Purchase complete! 🎉");
