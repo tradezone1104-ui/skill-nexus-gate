@@ -24,6 +24,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
+import CourseList from "./pages/CourseList";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
                 <PurchaseProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/course-list" element={<CourseList />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/course/:id" element={<CourseDetail />} />
                   <Route path="/free-learning" element={<FreeLearning />} />
