@@ -81,7 +81,7 @@ const CourseCard = ({ course }: { course: Course }) => {
             <span className="text-xs text-muted-foreground">{course.instructor}</span>
           </div>
 
-          {isPurchased(course.id) ? (
+          {hasAccess ? (
             <div className="flex items-center gap-2">
               <Link to={`/course/${course.id}`} className="flex-1">
                 <Button size="sm" className="w-full bg-emerald-600 text-primary-foreground hover:bg-emerald-700 text-xs gap-1.5">
