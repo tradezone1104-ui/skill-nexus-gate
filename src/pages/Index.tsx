@@ -6,8 +6,7 @@ import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
-import CategoryCard from "@/components/CategoryCard";
-import { categories, getFeaturedCourses } from "@/data/courses";
+import { getFeaturedCourses } from "@/data/courses";
 
 const stats = [
   { icon: BookOpen, value: "2,000+", label: "Courses" },
@@ -37,26 +36,11 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* All Courses */}
       <section className="container mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Browse Categories</h2>
-            <p className="text-muted-foreground mt-1">Find the perfect course for your goals</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {categories.map(cat => (
-            <CategoryCard key={cat.id} {...cat} />
-          ))}
-        </div>
-      </section>
-
-      {/* Featured */}
-      <section className="container mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Featured Courses</h2>
+            <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">All Courses</h2>
             <p className="text-muted-foreground mt-1">Top-rated courses hand-picked for you</p>
           </div>
           <Link to="/courses">
