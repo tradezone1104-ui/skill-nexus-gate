@@ -35,7 +35,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<Index />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/course/:id" element={<CourseDetail />} />
               <Route path="/free-learning" element={<FreeLearning />} />
