@@ -250,6 +250,9 @@ const SubscriptionCheckout = () => {
                 >
                   <Lock className="h-4 w-4 mr-1" /> Start Subscription
                 </Button>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Payment integration coming soon — will be connected to Paytm.
+                </p>
               </div>
             </div>
           </div>
