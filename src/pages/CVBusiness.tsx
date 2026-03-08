@@ -147,19 +147,32 @@ const CVBusiness = () => {
   const StatusBanner = () => {
     if (appStatus === "pending") {
       return (
-        <Card className="border-yellow-500/30 bg-yellow-500/5 mb-10">
-          <CardContent className="flex items-start gap-4 p-6">
-            <Clock className="h-8 w-8 text-yellow-500 shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-semibold text-foreground text-lg">Application Submitted</h3>
-              <p className="text-muted-foreground text-sm mt-1">Your reseller application has been submitted.</p>
-              <p className="text-sm mt-2 font-medium text-yellow-600">Status: Waiting for admin approval</p>
-              <button onClick={() => navigate("/reseller-dashboard")} className="mt-5 text-sm px-5 py-2 rounded-md border border-green-500/50 text-green-500 bg-transparent hover:bg-green-500/10 transition-colors">
-                View Reseller Dashboard →
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mb-10 space-y-4">
+          <Card className="border-yellow-500/20 bg-yellow-500/5">
+            <CardContent className="flex items-start gap-4 p-6">
+              <Clock className="h-8 w-8 text-yellow-500 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">Application Submitted</h3>
+                <p className="text-muted-foreground text-sm mt-1">Your reseller application has been submitted.</p>
+                <p className="text-sm mt-2 font-medium text-yellow-600">Status: Waiting for admin approval</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border bg-card/60 hover:bg-card transition-colors cursor-pointer group" onClick={() => navigate("/reseller-dashboard")}>
+            <CardContent className="flex items-center justify-between p-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Reseller Dashboard</p>
+                  <p className="text-xs text-muted-foreground">View your dashboard, referral links & earnings</p>
+                </div>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+            </CardContent>
+          </Card>
+        </div>
       );
     }
     if (appStatus === "rejected") {
