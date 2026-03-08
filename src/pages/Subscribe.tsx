@@ -197,11 +197,14 @@ const Subscribe = () => {
             </Badge>
             <div>
               <h3 className="font-display font-bold text-xl text-foreground">Yearly Plan</h3>
-              <div className="mt-3">
-                <span className="font-display font-extrabold text-4xl text-foreground">₹3,999</span>
-                <span className="text-muted-foreground ml-1">/year</span>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-foreground" style={{ letterSpacing: "-0.5px" }}>₹</span>
+                  <span className="text-6xl font-extrabold text-foreground tracking-tighter" style={{ letterSpacing: "-2px" }}>3,999</span>
+                </div>
+                <span className="text-muted-foreground text-sm mt-1 block">per year</span>
               </div>
-              <p className="text-sm text-primary font-semibold mt-1">Save 33% compared to monthly</p>
+              <p className="text-sm text-primary font-semibold mt-2">Save 33% compared to monthly</p>
             </div>
             <ul className="space-y-3 flex-1">
               {["Everything included in monthly plan", "Save more compared to monthly", "Premium member badge", "Early access to new courses"].map((f) =>
