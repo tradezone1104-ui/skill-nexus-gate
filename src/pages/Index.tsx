@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Heart } from "lucide-react";
+import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Flame, Star as StarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
@@ -8,23 +9,65 @@ import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import { courses, getFeaturedCourses, getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWishlistContext } from "@/contexts/WishlistContext";
+import { usePurchaseContext } from "@/contexts/PurchaseContext";
+import { useMemo } from "react";
 
-const stats = [
-  { icon: BookOpen, value: "2,000+", label: "Courses" },
-  { icon: Users, value: "1M+", label: "Students" },
-  { icon: TrendingUp, value: "95%", label: "Success Rate" },
-];
+const SectionHeader = ({
+  title,
+  icon,
+  linkTo,
+  linkText,
+}: {
+  title: string;
+  icon?: React.ReactNode;
+  linkTo: string;
+  linkText: string;
+}) => (
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-2">
+      {icon}
+      <h2 className="font-display font-bold text-xl md:text-2xl text-foreground">{title}</h2>
+    </div>
+    <Link to={linkTo}>
+      <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+        {linkText} <ArrowRight className="ml-1 h-4 w-4" />
+      </Button>
+    </Link>
+  </div>
+);
+
+const CourseScrollGrid = ({ children }: { children: React.ReactNode }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:grid-cols-2">
+    {children}
+  </div>
+);
 
 const Index = () => {
-  const { user, profile } = useAuth();
-  const { wishlistIds } = useWishlistContext();
-  const featured = getFeaturedCourses();
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner";
+  const { user } = useAuth();
+  const { purchasedIds } = usePurchaseContext();
 
-  const continueLearning = courses.slice(0, 4);
-  const recommended = courses.slice(8, 16);
-  const wishlistCourses = Array.from(wishlistIds).map(getCourseById).filter(Boolean).slice(0, 4);
+  // Continue Learning – purchased courses with mock progress
+  const purchasedCourses = useMemo(() => {
+    return Array.from(purchasedIds)
+      .map(getCourseById)
+      .filter(Boolean)
+      .slice(0, 4);
+  }, [purchasedIds]);
+
+  // Latest courses – last 8 generated (newest)
+  const latestCourses = useMemo(() => [...courses].reverse().slice(0, 8), []);
+
+  // Top selling – sort by student count desc
+  const topSelling = useMemo(
+    () => [...courses].sort((a, b) => b.students - a.students).slice(0, 8),
+    []
+  );
+
+  // Recommended – middle range courses (different from latest/top)
+  const recommended = useMemo(() => courses.slice(100, 108), []);
+
+  // Featured
+  const featured = useMemo(() => getFeaturedCourses().slice(0, 8), []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,100 +75,119 @@ const Index = () => {
       <CategoryBar />
       <HeroSlider />
 
-      {/* Logged-in welcome banner */}
-      {user && (
-        <section className="bg-card border-b border-border">
-          <div className="max-w-[1200px] mx-auto px-6 py-8">
-            <h2 className="font-display font-bold text-2xl text-foreground">
-              Welcome back, {displayName} 👋
-            </h2>
-            <p className="text-muted-foreground mt-1">Pick up where you left off or discover something new.</p>
-          </div>
-        </section>
-      )}
-
-      {/* Continue Learning - only for logged in users */}
-      {user && (
+      {/* SECTION 1 – Continue Learning (purchased only) */}
+      {user && purchasedCourses.length > 0 && (
         <section className="max-w-[1200px] mx-auto px-6 py-10">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-primary" />
-              <h2 className="font-display font-bold text-xl text-foreground">Continue Learning</h2>
-            </div>
-            <Link to="/my-learning">
-              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
+          <SectionHeader
+            title="Continue Learning"
+            icon={<Clock className="h-5 w-5 text-primary" />}
+            linkTo="/my-learning"
+            linkText="View All"
+          />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {continueLearning.map(course => (
-              <CourseCard key={course.id} course={course} />
-            ))}
+            {purchasedCourses.map((course) => {
+              const mockProgress = Math.floor(Math.random() * 80) + 10;
+              return (
+                <div
+                  key={course!.id}
+                  className="rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 shadow-card hover:shadow-glow hover:-translate-y-1 flex flex-col"
+                >
+                  <Link to={`/course/${course!.id}`} className="block">
+                    <div className="relative aspect-video overflow-hidden">
+                      <img
+                        src={course!.thumbnail}
+                        alt={course!.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    </div>
+                  </Link>
+                  <div className="p-4 space-y-3 flex-1 flex flex-col">
+                    <Link to={`/course/${course!.id}`}>
+                      <h3 className="font-display font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors">
+                        {course!.title}
+                      </h3>
+                    </Link>
+                    <div className="space-y-1.5 mt-auto">
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{mockProgress}% complete</span>
+                      </div>
+                      <Progress value={mockProgress} className="h-2" />
+                    </div>
+                    <Link to={`/course/${course!.id}`} className="mt-2">
+                      <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs">
+                        Resume
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
 
-      {/* Stats - guest only */}
-      {!user && (
-        <section className="container mx-auto px-4 py-10">
-          <div className="flex justify-center gap-8 md:gap-16">
-            {stats.map(s => (
-              <div key={s.label} className="text-center">
-                <s.icon className="h-6 w-6 text-primary mx-auto mb-2" />
-                <div className="font-display font-bold text-2xl text-foreground">{s.value}</div>
-                <div className="text-sm text-muted-foreground">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Recommended / All Courses */}
+      {/* SECTION 2 – Latest Courses */}
       <section className="max-w-[1200px] mx-auto px-6 py-10">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">
-              {user ? "Recommended for You" : "All Courses"}
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              {user ? "Courses picked based on your interests" : "Top-rated courses hand-picked for you"}
-            </p>
-          </div>
-          <Link to="/courses">
-            <Button variant="ghost" className="text-primary hover:text-primary/80">
-              {user ? "Explore" : "View All"} <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {(user ? recommended : featured).map(course => (
+        <SectionHeader
+          title="Latest Courses"
+          icon={<BookOpen className="h-5 w-5 text-primary" />}
+          linkTo="/courses"
+          linkText="Explore All Courses"
+        />
+        <CourseScrollGrid>
+          {latestCourses.map((course) => (
             <CourseCard key={course.id} course={course} />
           ))}
-        </div>
+        </CourseScrollGrid>
       </section>
 
-      {/* Wishlist preview - logged in only */}
-      {user && wishlistCourses.length > 0 && (
+      {/* SECTION 3 – Top Selling Courses */}
+      <section className="max-w-[1200px] mx-auto px-6 py-10">
+        <SectionHeader
+          title="Top Selling Courses 🔥"
+          icon={<TrendingUp className="h-5 w-5 text-primary" />}
+          linkTo="/courses"
+          linkText="Explore All Courses"
+        />
+        <CourseScrollGrid>
+          {topSelling.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </CourseScrollGrid>
+      </section>
+
+      {/* SECTION 4 – Recommended For You (logged in only) */}
+      {user && (
         <section className="max-w-[1200px] mx-auto px-6 py-10">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Heart className="h-5 w-5 text-primary" />
-              <h2 className="font-display font-bold text-xl text-foreground">Your Wishlist</h2>
-            </div>
-            <Link to="/wishlist">
-              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {wishlistCourses.map(course => (
-              <CourseCard key={course!.id} course={course!} />
+          <SectionHeader
+            title="Recommended For You"
+            icon={<Users className="h-5 w-5 text-primary" />}
+            linkTo="/courses"
+            linkText="Explore All Courses"
+          />
+          <CourseScrollGrid>
+            {recommended.map((course) => (
+              <CourseCard key={course.id} course={course} />
             ))}
-          </div>
+          </CourseScrollGrid>
         </section>
       )}
+
+      {/* SECTION 5 – Featured Courses */}
+      <section className="max-w-[1200px] mx-auto px-6 py-10">
+        <SectionHeader
+          title="Featured Courses ⭐"
+          icon={<StarIcon className="h-5 w-5 text-primary" />}
+          linkTo="/courses"
+          linkText="Explore All Courses"
+        />
+        <CourseScrollGrid>
+          {featured.map((course) => (
+            <CourseCard key={course.id} course={course} />
+          ))}
+        </CourseScrollGrid>
+      </section>
 
       {/* CTA - guest only */}
       {!user && (
