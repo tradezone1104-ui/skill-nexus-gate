@@ -283,9 +283,9 @@ const Navbar = () => {
                   </TooltipContent>
                 </Tooltip>
                 {profileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg py-2 animate-fade-in z-50">
-                    {/* User info */}
-                    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg animate-fade-in z-50 flex flex-col" style={{ maxHeight: '70vh' }}>
+                    {/* User info - fixed top */}
+                    <div className="px-4 py-3 border-b border-border flex items-center gap-3 shrink-0">
                       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
                         {initials}
                       </div>
@@ -294,31 +294,36 @@ const Navbar = () => {
                         <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                       </div>
                     </div>
-                    {profileMenuItems.map((item, i) => {
-                      if ('divider' in item) return <div key={i} className="my-1 border-t border-border" />;
-                      if ('section' in item) return <div key={i} className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.section}</div>;
-                      return (
-                        <Link
-                          key={i}
-                          to={item.to!}
-                          onClick={() => setProfileOpen(false)}
-                          className="block px-4 py-2 text-sm transition-colors text-foreground hover:bg-muted"
-                        >
-                          <span>{item.label}</span>
-                          {'badge' in item && item.badge && (
-                            <span className="ml-2 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{item.badge}</span>
-                          )}
-                        </Link>
-                      );
-                    })}
-                    <div className="my-1 border-t border-border" />
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left block px-4 py-2 text-sm transition-colors text-destructive hover:bg-destructive/10"
-                    >
-                      <LogOut className="h-3.5 w-3.5 inline mr-2" />
-                      Log Out
-                    </button>
+                    {/* Scrollable menu items */}
+                    <div className="overflow-y-auto flex-1 py-2 scrollbar-thin">
+                      {profileMenuItems.map((item, i) => {
+                        if ('divider' in item) return <div key={i} className="my-1 border-t border-border" />;
+                        if ('section' in item) return <div key={i} className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.section}</div>;
+                        return (
+                          <Link
+                            key={i}
+                            to={item.to!}
+                            onClick={() => setProfileOpen(false)}
+                            className="block px-4 py-2 text-sm transition-colors text-foreground hover:bg-muted"
+                          >
+                            <span>{item.label}</span>
+                            {'badge' in item && item.badge && (
+                              <span className="ml-2 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{item.badge}</span>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    {/* Logout - fixed bottom */}
+                    <div className="shrink-0 border-t border-border">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10"
+                      >
+                        <LogOut className="h-3.5 w-3.5 inline mr-2" />
+                        Log Out
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
