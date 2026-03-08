@@ -5,12 +5,20 @@ import { categoryGroups } from "@/data/categoryData";
 
 const CategoryBar = () => {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [arrowLeft, setArrowLeft] = useState(0);
   const barRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const catRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const handleMouseEnter = (catId: string) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setHoveredCategory(catId);
+    // Calculate arrow position
+    const el = catRefs.current[catId];
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      setArrowLeft(rect.left + rect.width / 2);
+    }
   };
 
   const handleMouseLeave = () => {
@@ -31,21 +39,26 @@ const CategoryBar = () => {
     <div className="relative z-40" onMouseLeave={handleMouseLeave}>
       {/* Main category bar */}
       <div className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 relative">
+        <div className="max-w-[1200px] mx-auto px-4 relative">
           <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-card/90 p-1 rounded-r border-r border-border text-muted-foreground hover:text-foreground lg:hidden">
             <ChevronLeft className="h-4 w-4" />
           </button>
 
-          <div ref={barRef} className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2 px-6 lg:px-0 lg:justify-center">
+          <div ref={barRef} className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide py-2 px-6 lg:px-0 lg:justify-center">
             {categoryGroups.map((cat) => (
               <div
                 key={cat.id}
+                ref={(el) => { catRefs.current[cat.id] = el; }}
                 onMouseEnter={() => handleMouseEnter(cat.id)}
                 className="relative"
               >
                 <Link
                   to={`/courses?category=${cat.id}`}
-                  className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${hoveredCategory === cat.id ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                  className={`flex items-center px-3.5 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-all duration-150 ${
+                    hoveredCategory === cat.id
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
                 >
                   {cat.name}
                 </Link>
@@ -59,25 +72,53 @@ const CategoryBar = () => {
         </div>
       </div>
 
-      {/* Horizontal subcategory bar */}
+      {/* Arrow indicator + Subcategory bar */}
       {activeCat && (
-        <div
-          onMouseEnter={handleSubbarEnter}
-          className="border-b border-border bg-background animate-fade-in"
-          style={{ padding: "10px 20px" }}
-        >
-          <div className="container mx-auto px-4 flex items-center gap-4 overflow-x-auto scrollbar-hide">
-            {activeCat.subcategories.map((sub) => (
-              <Link
-                key={sub.id}
-                to={`/courses?category=${activeCat.id}&sub=${sub.id}`}
-                className="text-sm whitespace-nowrap text-muted-foreground hover:text-primary transition-colors py-1"
-              >
-                {sub.name}
-              </Link>
-            ))}
+        <>
+          {/* Triangle arrow */}
+          <div
+            className="absolute z-50"
+            style={{
+              left: `${arrowLeft}px`,
+              top: "100%",
+              transform: "translateX(-50%) translateY(-1px)",
+            }}
+          >
+            <div
+              className="w-0 h-0"
+              style={{
+                borderLeft: "8px solid transparent",
+                borderRight: "8px solid transparent",
+                borderBottom: "8px solid hsl(222 47% 11%)",
+              }}
+            />
           </div>
-        </div>
+
+          {/* Subcategory bar */}
+          <div
+            onMouseEnter={handleSubbarEnter}
+            className="animate-fade-in"
+            style={{
+              background: "hsl(222 47% 11%)",
+              height: "48px",
+            }}
+          >
+            <div className="max-w-[1200px] mx-auto px-4 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
+              {activeCat.subcategories.map((sub) => (
+                <Link
+                  key={sub.id}
+                  to={`/courses?category=${activeCat.id}&sub=${sub.id}`}
+                  className="text-sm whitespace-nowrap font-medium transition-colors duration-150 py-1"
+                  style={{ color: "hsl(215 20% 65%)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(215 20% 65%)")}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
