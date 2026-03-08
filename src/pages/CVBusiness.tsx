@@ -154,6 +154,9 @@ const CVBusiness = () => {
               <h3 className="font-semibold text-foreground text-lg">Application Submitted</h3>
               <p className="text-muted-foreground text-sm mt-1">Your reseller application has been submitted.</p>
               <p className="text-sm mt-2 font-medium text-yellow-600">Status: Waiting for admin approval</p>
+              <Button size="sm" onClick={() => navigate("/reseller-dashboard")} className="mt-3 gap-2 rounded-xl">
+                View Reseller Dashboard <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
