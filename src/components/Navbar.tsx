@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const profileMenuItems = [
   { label: "Course List", to: "/course-list" },
