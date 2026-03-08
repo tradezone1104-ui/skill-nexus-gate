@@ -1,3 +1,5 @@
+import { categoryGroups } from "@/data/categoryData";
+
 export interface Course {
   id: string;
   title: string;
@@ -6,6 +8,7 @@ export interface Course {
   price: number;
   originalPrice: number;
   category: string;
+  subcategory: string;
   instructor: string;
   rating: number;
   students: number;
@@ -18,13 +21,23 @@ export interface Course {
   featured?: boolean;
 }
 
-export const categories = [
-  { id: "trading", name: "Trading", icon: "📈", count: 450 },
-  { id: "investing", name: "Investing", icon: "💰", count: 380 },
-  { id: "stock-market", name: "Stock Market", icon: "📊", count: 320 },
-  { id: "business", name: "Business", icon: "💼", count: 510 },
-  { id: "others", name: "Others", icon: "🎯", count: 340 },
-];
+export const categories = categoryGroups.map((cg) => ({
+  id: cg.id,
+  name: cg.name,
+  icon: categoryIconMap[cg.id] || "📚",
+  count: 0, // will be computed after generation
+}));
+
+const categoryIconMap: Record<string, string> = {
+  trading: "📈",
+  options: "📋",
+  investing: "💰",
+  "technical-analysis": "📊",
+  "price-action": "🎯",
+  indicators: "🔧",
+  "crypto-forex": "🪙",
+  "algo-ai": "🤖",
+};
 
 const thumbnails = [
   "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",
@@ -44,52 +57,77 @@ const instructors = [
 
 const levels: Course["level"][] = ["Beginner", "Intermediate", "Advanced"];
 
-const courseTitles: Record<string, string[]> = {
-  trading: [
-    "Forex Trading Masterclass", "Day Trading Strategies", "Crypto Trading Essentials",
-    "Options Trading Blueprint", "Swing Trading Mastery", "Scalping Techniques Pro",
-    "Algorithmic Trading with Python", "Price Action Trading", "Technical Analysis Deep Dive",
-    "Risk Management in Trading",
-  ],
-  investing: [
-    "Value Investing Fundamentals", "Real Estate Investment Guide", "Portfolio Management Pro",
-    "Dividend Investing Strategy", "ETF Investing Masterclass", "Angel Investing 101",
-    "Retirement Planning Guide", "Gold & Commodity Investing", "Mutual Fund Mastery",
-    "Impact Investing Blueprint",
-  ],
-  "stock-market": [
-    "Stock Market for Beginners", "Fundamental Analysis Pro", "IPO Investing Guide",
-    "Stock Screening Mastery", "Market Psychology Decoded", "Sector Analysis Strategies",
-    "Blue Chip Investing", "Penny Stock Strategies", "Market Timing Secrets",
-    "Stock Valuation Models",
-  ],
-  business: [
-    "Startup Foundations", "Digital Marketing Mastery", "E-Commerce Empire",
-    "Leadership & Management", "Financial Modeling Excel", "Business Strategy MBA",
-    "Sales Funnel Optimization", "Brand Building Blueprint", "Negotiation Masterclass",
-    "Product Management Pro",
-  ],
-  others: [
-    "Personal Finance 101", "Tax Planning Strategies", "Blockchain Fundamentals",
-    "Data Analytics for Finance", "Excel for Business", "Public Speaking Mastery",
-    "Time Management Pro", "Networking Strategies", "Freelancing Blueprint",
-    "AI in Finance",
-  ],
+// Course title templates per subcategory
+const subTitles: Record<string, string[]> = {
+  // Trading
+  "intraday-trading": ["Intraday Trading Masterclass", "Day Trading Secrets", "Intraday Scalping Pro", "Morning Trade Setup"],
+  "swing-trading": ["Swing Trading Blueprint", "Multi-Day Swing Mastery", "Swing Trade Setups", "Swing Patterns Pro"],
+  "scalping": ["Scalping Techniques Pro", "1-Minute Scalping", "Ultra Scalping Mastery", "Fast Scalping System"],
+  "positional-trading": ["Positional Trading Guide", "Long Positional Setups", "Positional Swing Combo", "Weekly Positional Strategy"],
+  "trading-strategies": ["Trading Strategies A-Z", "Advanced Trading Systems", "Multi-Strategy Trading", "Risk-Reward Mastery"],
+  // Options
+  "option-buying": ["Option Buying Mastery", "Call & Put Buying Guide", "Weekly Option Buying", "Expiry Day Buying"],
+  "option-selling": ["Option Selling Blueprint", "Iron Condor Mastery", "Theta Decay Profits", "Premium Selling Pro"],
+  "options-strategies": ["Options Strategies Deep Dive", "Straddle & Strangle Pro", "Spread Strategies Mastery", "Multi-Leg Options"],
+  "options-greeks": ["Options Greeks Decoded", "Delta Neutral Trading", "Volatility Trading Pro", "Gamma Scalping Mastery"],
+  "futures-trading": ["Futures Trading Fundamentals", "Index Futures Pro", "Commodity Futures Guide", "Futures Hedging Mastery"],
+  // Investing
+  "long-term-investing": ["Long-Term Wealth Builder", "Buy & Hold Mastery", "Compounding Wealth Guide", "Retirement Investing"],
+  "value-investing": ["Value Investing Fundamentals", "Buffett-Style Investing", "Undervalued Stock Picker", "Deep Value Analysis"],
+  "growth-investing": ["Growth Stock Mastery", "Tech Growth Investing", "High-Growth Portfolio", "Momentum Growth Strategy"],
+  "dividend-investing": ["Dividend Income Mastery", "Monthly Dividend Builder", "Dividend Aristocrats Guide", "Passive Income Dividends"],
+  "portfolio-management": ["Portfolio Management Pro", "Asset Allocation Guide", "Rebalancing Strategies", "Risk-Adjusted Returns"],
+  // Technical Analysis
+  "chart-patterns": ["Chart Patterns Mastery", "Head & Shoulders Pro", "Triangle Patterns Guide", "Breakout Pattern Trading"],
+  "candlestick-analysis": ["Candlestick Analysis Pro", "Japanese Candle Mastery", "Reversal Patterns Guide", "Candle Psychology"],
+  "support-resistance": ["Support & Resistance Pro", "Key Levels Mastery", "Demand & Supply Zones", "Pivot Point Trading"],
+  "trend-analysis": ["Trend Analysis Mastery", "Trend Following Systems", "Multi-Timeframe Trends", "Trend Reversal Signals"],
+  // Price Action / SMC
+  "price-action-basics": ["Price Action Mastery", "Naked Chart Trading", "Price Action Setups", "Clean Chart Analysis"],
+  "smart-money-concepts": ["Smart Money Concepts Masterclass", "Institutional Trading Decoded", "SMC Order Flow", "Smart Money Footprint"],
+  "ict-concepts": ["ICT Concepts Full Course", "ICT Mentorship Decoded", "ICT Market Structure", "ICT Entry Models"],
+  "order-blocks": ["Order Blocks Mastery", "Institutional Order Blocks", "OB Trading Strategy", "Mitigation Block Trading"],
+  "fair-value-gaps": ["Fair Value Gap Trading", "FVG Mastery Course", "Imbalance Trading Pro", "Gap Fill Strategies"],
+  // Indicators & Tools
+  "moving-averages": ["Moving Average Mastery", "EMA Crossover Systems", "SMA Trading Strategies", "Dynamic MA Trading"],
+  "rsi": ["RSI Trading Mastery", "RSI Divergence Pro", "Overbought/Oversold Trading", "RSI Swing Strategy"],
+  "macd": ["MACD Trading Blueprint", "MACD Histogram Trading", "MACD Divergence Mastery", "Signal Line Strategies"],
+  "bollinger-bands": ["Bollinger Bands Mastery", "Bollinger Squeeze Trading", "Band Width Strategies", "Volatility Band Trading"],
+  "tradingview-tools": ["TradingView Mastery", "Pine Script Basics", "Custom Indicators Build", "TradingView Alerts Pro"],
+  // Crypto & Forex
+  "crypto-trading": ["Crypto Trading Essentials", "Bitcoin Trading Pro", "Altcoin Trading Mastery", "Crypto Swing Trading"],
+  "spot-trading": ["Spot Trading Fundamentals", "Spot Market Mastery", "Exchange Spot Trading", "Spot vs Margin Guide"],
+  "defi": ["DeFi Fundamentals", "Yield Farming Mastery", "Liquidity Pool Guide", "DeFi Protocol Analysis"],
+  "web3": ["Web3 Essentials", "Blockchain Development Intro", "NFT Trading Guide", "Web3 Investing"],
+  "forex-basics": ["Forex Basics Masterclass", "Currency Pair Trading", "Forex Market Structure", "Pip & Lot Sizing"],
+  "forex-strategies": ["Forex Strategies Pro", "London Session Trading", "News Trading Forex", "Carry Trade Strategy"],
+  // Algo & AI
+  "algo-trading-basics": ["Algo Trading Fundamentals", "Automated Trading Setup", "Algo Strategy Design", "Systematic Trading"],
+  "backtesting": ["Backtesting Mastery", "Strategy Backtesting Pro", "Walk-Forward Analysis", "Monte Carlo Testing"],
+  "python-for-trading": ["Python for Trading", "Pandas for Finance", "Python Algo Bot", "Data Analysis Trading"],
+  "quantitative-strategies": ["Quantitative Strategies Pro", "Statistical Arbitrage", "Quant Model Building", "Factor Investing"],
+  "trading-bots": ["Trading Bot Builder", "Crypto Bot Mastery", "Auto-Trading Systems", "Bot Strategy Design"],
+  "ai-tools-automation": ["AI Tools for Trading", "ChatGPT for Traders", "ML Price Prediction", "AI Automation Pro"],
+  "video-editing": ["Video Editing Mastery", "Content Creation Pro", "Financial Video Production", "YouTube for Traders"],
+  "graphic-design": ["Graphic Design for Finance", "Canva for Traders", "Social Media Graphics", "Brand Design Pro"],
+  "digital-productivity": ["Digital Productivity Tools", "Notion for Traders", "Automation Workflows", "Productivity Mastery"],
 };
 
-function generateCourse(id: number, categoryId: string, titleIdx: number): Course {
-  const titles = courseTitles[categoryId];
+function generateCourse(id: number, categoryId: string, subcategoryId: string, titleIdx: number): Course {
+  const titles = subTitles[subcategoryId] || [`${subcategoryId} Course`];
   const title = titles[titleIdx % titles.length];
+  const volSuffix = titleIdx >= titles.length ? ` Vol. ${Math.floor(titleIdx / titles.length) + 1}` : "";
   const price = Math.floor(Math.random() * 180) + 19;
 
   return {
     id: `course-${id}`,
-    title: `${title}${titleIdx >= titles.length ? ` Vol. ${Math.floor(titleIdx / titles.length) + 1}` : ""}`,
+    title: `${title}${volSuffix}`,
     description: `Master the essentials of ${title.toLowerCase()} with hands-on projects and real-world examples. Perfect for anyone looking to advance their skills.`,
     longDescription: `This comprehensive course covers everything you need to know about ${title.toLowerCase()}. You'll learn from industry experts through video lectures, practical exercises, and real-world case studies.\n\nWhat you'll learn:\n• Core concepts and fundamentals\n• Advanced strategies and techniques\n• Risk management and best practices\n• Real-world application and case studies\n• Hands-on projects and assignments\n\nThis course is designed for both beginners and experienced professionals looking to deepen their knowledge.`,
     price,
     originalPrice: Math.floor(price * (1.5 + Math.random())),
     category: categoryId,
+    subcategory: subcategoryId,
     instructor: instructors[id % instructors.length],
     rating: Math.round((3.5 + Math.random() * 1.5) * 10) / 10,
     students: Math.floor(Math.random() * 50000) + 500,
@@ -97,40 +135,57 @@ function generateCourse(id: number, categoryId: string, titleIdx: number): Cours
     lessons: Math.floor(Math.random() * 150) + 20,
     level: levels[id % 3],
     thumbnail: thumbnails[id % thumbnails.length],
-    tags: [categoryId, levels[id % 3].toLowerCase()],
+    tags: [categoryId, subcategoryId, levels[id % 3].toLowerCase()],
     telegramLink: "https://t.me/+example",
     featured: id < 8,
   };
 }
 
-// Generate 2000+ courses
+// Generate ~2100 courses spread across all categories & subcategories
 export const courses: Course[] = [];
 let courseId = 0;
-const categoryIds = categories.map(c => c.id);
 
-for (let i = 0; i < 2100; i++) {
-  const catIdx = i % categoryIds.length;
-  const titleIdx = Math.floor(i / categoryIds.length);
-  courses.push(generateCourse(courseId++, categoryIds[catIdx], titleIdx));
+// Distribute courses across every subcategory
+const COURSES_PER_SUB = 5; // 5 rounds per subcategory
+for (let round = 0; round < COURSES_PER_SUB; round++) {
+  for (const cat of categoryGroups) {
+    for (const sub of cat.subcategories) {
+      courses.push(generateCourse(courseId++, cat.id, sub.id, round));
+    }
+  }
 }
 
-export function searchCourses(query: string, category?: string): Course[] {
+// Fill up remaining to ~2100
+while (courses.length < 2100) {
+  const cat = categoryGroups[courseId % categoryGroups.length];
+  const sub = cat.subcategories[courseId % cat.subcategories.length];
+  const round = COURSES_PER_SUB + Math.floor((courseId - COURSES_PER_SUB * categoryGroups.length) / categoryGroups.length);
+  courses.push(generateCourse(courseId++, cat.id, sub.id, round));
+}
+
+// Update category counts
+categories.forEach((c) => {
+  c.count = courses.filter((course) => course.category === c.id).length;
+});
+
+export function searchCourses(query: string, category?: string, subcategory?: string): Course[] {
   const q = query.toLowerCase();
-  return courses.filter(c => {
+  return courses.filter((c) => {
     const matchesQuery = !q || c.title.toLowerCase().includes(q) || c.description.toLowerCase().includes(q) || c.instructor.toLowerCase().includes(q);
     const matchesCat = !category || category === "all" || c.category === category;
-    return matchesQuery && matchesCat;
+    const matchesSub = !subcategory || c.subcategory === subcategory;
+    return matchesQuery && matchesCat && matchesSub;
   });
 }
 
 export function getCourseById(id: string): Course | undefined {
-  return courses.find(c => c.id === id);
+  return courses.find((c) => c.id === id);
 }
 
 export function getFeaturedCourses(): Course[] {
-  return courses.filter(c => c.featured);
+  return courses.filter((c) => c.featured);
 }
 
 export function getCoursesByCategory(categoryId: string): Course[] {
-  return courses.filter(c => c.category === categoryId);
+  return courses.filter((c) => c.category === categoryId);
 }
