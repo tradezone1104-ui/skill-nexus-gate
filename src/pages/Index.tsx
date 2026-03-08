@@ -7,7 +7,7 @@ import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
-import { courses, getFeaturedCourses, getCourseById } from "@/data/courses";
+import { courses, getFeaturedCourses, getCourseById, categories } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useMemo } from "react";
