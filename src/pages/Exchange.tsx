@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
@@ -23,6 +24,7 @@ interface ExchangeRequest {
   offer_course_link: string | null;
   offer_screenshot_url: string | null;
   want_course_name: string;
+  want_type: string;
   status: string;
   admin_note: string | null;
   created_at: string;
@@ -36,6 +38,7 @@ interface SellRequest {
   course_link: string | null;
   screenshot_url: string | null;
   expected_price: number;
+  admin_offer_price: number | null;
   status: string;
   admin_note: string | null;
   created_at: string;
@@ -47,7 +50,9 @@ const statusConfig: Record<string, { label: string; icon: React.ElementType; col
   pending: { label: "Waiting for admin review", icon: Clock, color: "text-yellow-500" },
   approved: { label: "Approved", icon: CheckCircle2, color: "text-green-500" },
   accepted: { label: "Offer accepted", icon: CheckCircle2, color: "text-green-500" },
+  counter_offer: { label: "Counter offer", icon: DollarSign, color: "text-orange-500" },
   rejected: { label: "Rejected", icon: XCircle, color: "text-destructive" },
+  closed: { label: "Closed", icon: XCircle, color: "text-muted-foreground" },
 };
 
 const Exchange = () => {
@@ -64,6 +69,7 @@ const Exchange = () => {
   const [offerPlatform, setOfferPlatform] = useState("Other");
   const [offerLink, setOfferLink] = useState("");
   const [exchangeScreenshot, setExchangeScreenshot] = useState<File | null>(null);
+  const [wantType, setWantType] = useState("specific");
   const [wantCourse, setWantCourse] = useState("");
 
   // Sell state
@@ -117,8 +123,12 @@ const Exchange = () => {
   const handleExchangeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    if (!offerName.trim() || !offerAuthor.trim() || !wantCourse.trim()) {
+    if (!offerName.trim() || !offerAuthor.trim()) {
       toast({ title: "Please fill all required fields", variant: "destructive" });
+      return;
+    }
+    if (wantType === "specific" && !wantCourse.trim()) {
+      toast({ title: "Please enter the course name you want", variant: "destructive" });
       return;
     }
     setExchangeSubmitting(true);
@@ -131,7 +141,8 @@ const Exchange = () => {
       offer_platform: offerPlatform,
       offer_course_link: offerLink.trim() || null,
       offer_screenshot_url: screenshotUrl,
-      want_course_name: wantCourse.trim(),
+      want_course_name: wantType === "specific" ? wantCourse.trim() : "Any course from CourseVerse",
+      want_type: wantType,
     });
 
     if (error) {
@@ -139,7 +150,7 @@ const Exchange = () => {
     } else {
       toast({ title: "Exchange request submitted!" });
       setOfferName(""); setOfferAuthor(""); setOfferPlatform("Other");
-      setOfferLink(""); setExchangeScreenshot(null); setWantCourse("");
+      setOfferLink(""); setExchangeScreenshot(null); setWantCourse(""); setWantType("specific");
       fetchExchangeRequests();
     }
     setExchangeSubmitting(false);
@@ -179,6 +190,33 @@ const Exchange = () => {
       fetchSellRequests();
     }
     setSellSubmitting(false);
+  };
+
+  const handleAcceptOffer = async (reqId: string) => {
+    const { error } = await supabase
+      .from("sell_requests")
+      .update({ status: "accepted" })
+      .eq("id", reqId);
+    if (error) {
+      toast({ title: "Failed to accept offer", variant: "destructive" });
+    } else {
+      toast({ title: "Offer accepted!" });
+      window.open(TELEGRAM_BOT_URL, "_blank");
+      fetchSellRequests();
+    }
+  };
+
+  const handleRejectOffer = async (reqId: string) => {
+    const { error } = await supabase
+      .from("sell_requests")
+      .update({ status: "closed" })
+      .eq("id", reqId);
+    if (error) {
+      toast({ title: "Failed to reject offer", variant: "destructive" });
+    } else {
+      toast({ title: "Offer rejected. Request closed." });
+      fetchSellRequests();
+    }
   };
 
   const suggestedCourses = courses.slice(0, 4);
@@ -231,7 +269,7 @@ const Exchange = () => {
                     <Input id="offerName" value={offerName} onChange={(e) => setOfferName(e.target.value)} placeholder="e.g. Smart Money Concepts" maxLength={200} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="offerAuthor">Course Creator / Author *</Label>
+                    <Label htmlFor="offerAuthor">Course Creator / Instructor *</Label>
                     <Input id="offerAuthor" value={offerAuthor} onChange={(e) => setOfferAuthor(e.target.value)} placeholder="e.g. John Doe" maxLength={200} />
                   </div>
                   <div className="space-y-2">
@@ -259,13 +297,32 @@ const Exchange = () => {
                   </div>
                 </div>
               </div>
+
               <div>
                 <h2 className="text-lg font-semibold text-foreground mb-4">Course You Want</h2>
-                <div className="space-y-2">
-                  <Label htmlFor="wantCourse">Course Name from CourseVerse *</Label>
-                  <Input id="wantCourse" value={wantCourse} onChange={(e) => setWantCourse(e.target.value)} placeholder="e.g. Forex Trading Masterclass" maxLength={200} />
-                </div>
+                <RadioGroup value={wantType} onValueChange={setWantType} className="space-y-3 mb-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="specific" id="want-specific" />
+                    <Label htmlFor="want-specific" className="cursor-pointer">Exchange for a specific course</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="any" id="want-any" />
+                    <Label htmlFor="want-any" className="cursor-pointer">Ask for any course from CourseVerse</Label>
+                  </div>
+                </RadioGroup>
+
+                {wantType === "specific" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="wantCourse">Course Name from CourseVerse *</Label>
+                    <Input id="wantCourse" value={wantCourse} onChange={(e) => setWantCourse(e.target.value)} placeholder="e.g. Forex Trading Masterclass" maxLength={200} />
+                  </div>
+                ) : (
+                  <div className="bg-muted rounded-lg p-4">
+                    <p className="text-sm text-muted-foreground">You're requesting any available course from CourseVerse in exchange. The admin will review your offer and suggest a suitable course.</p>
+                  </div>
+                )}
               </div>
+
               <Button type="submit" disabled={exchangeSubmitting} className="w-full font-semibold">
                 {exchangeSubmitting ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Submitting...</> : "Submit Exchange Request"}
               </Button>
@@ -297,7 +354,9 @@ const Exchange = () => {
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Requesting</p>
-                          <p className="font-medium text-foreground">{req.want_course_name}</p>
+                          <p className="font-medium text-foreground">
+                            {req.want_type === "any" ? "Any course from CourseVerse" : req.want_course_name}
+                          </p>
                         </div>
                         <p className="text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString()}</p>
 
@@ -306,7 +365,7 @@ const Exchange = () => {
                             <p className="text-sm font-medium text-primary">Your exchange request has been approved.</p>
                             <Button size="sm" asChild>
                               <a href={TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Contact Exchange Bot
+                                <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Contact CourseVerse Bot
                               </a>
                             </Button>
                           </div>
@@ -322,7 +381,7 @@ const Exchange = () => {
                               <p className="text-sm text-muted-foreground mb-2">Suggested courses you may exchange instead:</p>
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                                 {suggestedCourses.map((c) => (
-                                  <button key={c.id} onClick={() => setWantCourse(c.title)} className="text-left bg-muted rounded-lg p-2 hover:bg-accent transition-colors">
+                                  <button key={c.id} onClick={() => { setWantType("specific"); setWantCourse(c.title); }} className="text-left bg-muted rounded-lg p-2 hover:bg-accent transition-colors">
                                     <p className="text-xs font-medium text-foreground line-clamp-2">{c.title}</p>
                                     <p className="text-xs text-muted-foreground">₹{c.price}</p>
                                   </button>
@@ -407,7 +466,7 @@ const Exchange = () => {
                         <div className="flex items-start justify-between gap-3 flex-wrap">
                           <div>
                             <p className="font-medium text-foreground">{req.course_name} <span className="text-muted-foreground text-sm">by {req.course_author}</span></p>
-                            <p className="text-sm text-muted-foreground">{req.platform} · ₹{req.expected_price}</p>
+                            <p className="text-sm text-muted-foreground">{req.platform} · Your price: ₹{req.expected_price}</p>
                           </div>
                           <Badge variant="outline" className={`${sc.color} border-current gap-1`}>
                             <Icon className="h-3 w-3" /> {sc.label}
@@ -426,10 +485,34 @@ const Exchange = () => {
                           </div>
                         )}
 
+                        {req.status === "counter_offer" && req.admin_offer_price != null && (
+                          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-foreground">Admin has made a counter offer:</p>
+                              <p className="text-lg font-bold text-foreground mt-1">Admin Offer Price: ₹{req.admin_offer_price}</p>
+                              {req.admin_note && <p className="text-xs text-muted-foreground mt-1">{req.admin_note}</p>}
+                            </div>
+                            <div className="flex gap-3">
+                              <Button size="sm" onClick={() => handleAcceptOffer(req.id)} className="gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Accept Offer
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => handleRejectOffer(req.id)} className="gap-1.5">
+                                <XCircle className="h-3.5 w-3.5" /> Reject Offer
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
                         {req.status === "rejected" && (
                           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
                             <p className="text-sm font-medium text-destructive">Your selling request was not approved.</p>
                             {req.admin_note && <p className="text-xs text-muted-foreground mt-1">{req.admin_note}</p>}
+                          </div>
+                        )}
+
+                        {req.status === "closed" && (
+                          <div className="bg-muted rounded-lg p-4">
+                            <p className="text-sm text-muted-foreground">This request has been closed.</p>
                           </div>
                         )}
                       </div>
