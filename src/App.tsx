@@ -36,6 +36,7 @@ import FloatingSupport from "./components/FloatingSupport";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
 import CvCoins from "./pages/CvCoins";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cv-coins" element={<CvCoins />} />
+                  <Route path="/checkout" element={<Checkout />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
