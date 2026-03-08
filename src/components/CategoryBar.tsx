@@ -101,7 +101,7 @@ const CategoryBar = () => {
               {activeCat.subcategories.map((sub) => (
                 <Link
                   key={sub.id}
-                  to={`/courses?category=${activeCat.id}&sub=${sub.id}`}
+                  to={`/courses?category=${activeCat.id}&subcategory=${sub.id}`}
                   className="text-sm whitespace-nowrap font-medium transition-colors duration-150 py-1"
                   style={{ color: "hsl(215 20% 65%)" }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}

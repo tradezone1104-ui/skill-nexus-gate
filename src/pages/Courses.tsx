@@ -27,7 +27,7 @@ const Courses = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const initialCategory = searchParams.get("category") || "all";
-  const initialSub = searchParams.get("sub") || "";
+  const initialSub = searchParams.get("subcategory") || "";
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
@@ -38,7 +38,7 @@ const Courses = () => {
   // Sync state from URL on param changes (e.g. clicking CategoryBar links)
   useEffect(() => {
     const cat = searchParams.get("category") || "all";
-    const sub = searchParams.get("sub") || "";
+    const sub = searchParams.get("subcategory") || "";
     const q = searchParams.get("q") || "";
     setCategory(cat);
     setSubcategory(sub);
@@ -117,11 +117,11 @@ const Courses = () => {
   };
 
   const handleCategoryChange = (val: string) => {
-    updateParams({ category: val, sub: null }); // reset sub when category changes
+    updateParams({ category: val, subcategory: null });
   };
 
   const handleSubcategoryChange = (val: string) => {
-    updateParams({ sub: val === "all" ? null : val });
+    updateParams({ subcategory: val === "all" ? null : val });
   };
 
   return (
