@@ -24,11 +24,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-const HomePage = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-background" />;
-  return user ? <Dashboard /> : <Index />;
-};
+// Homepage now handles both guest and logged-in states internally
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
