@@ -330,23 +330,12 @@ const Subscribe = () => {
           <h2 className="font-display font-extrabold text-3xl md:text-4xl text-foreground mb-8">
             Start Learning With CourseVerse Premium
           </h2>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex justify-center">
             <Button
               size="lg"
-              variant="outline"
-              className="border-primary text-primary hover:bg-primary/10 font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe()}
-              disabled={!!loading || isSubscribed}>
-              
-              Get Monthly Plan — ₹499
-            </Button>
-            <Button
-              size="lg"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe()}
-              disabled={!!loading || isSubscribed}>
-              
-              Get Yearly Plan — ₹3,999
+              className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-14 px-10 text-base"
+              onClick={() => navigate("/subscription-checkout")}>
+              Start Subscription
             </Button>
           </div>
         </div>
