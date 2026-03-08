@@ -39,7 +39,7 @@ export const categories = categoryGroups.map((cg) => ({
   count: 0,
 }));
 
-
+const thumbnails = [
   "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",
   "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=600&q=80",
   "https://images.unsplash.com/photo-1560472355-536de3962603?w=600&q=80",
