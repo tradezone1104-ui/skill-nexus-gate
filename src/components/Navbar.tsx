@@ -439,7 +439,18 @@ const Navbar = () => {
       )}
     </nav>
 
-    {/* Logout Confirmation Modal */}
+    {/* Back button on inner pages */}
+    {location.pathname !== "/" && (
+      <div className="w-full max-w-[1200px] mx-auto px-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-foreground/60 hover:text-foreground transition-colors pt-3 pb-1"
+        >
+          ← Back
+        </button>
+      </div>
+    )}
+
     <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
       <AlertDialogContent className="bg-card border-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-w-sm">
         <AlertDialogHeader>
