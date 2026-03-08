@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Flame, Star as StarIcon } from "lucide-react";
+import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Flame, Star as StarIcon, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
