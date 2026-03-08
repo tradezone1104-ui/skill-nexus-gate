@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { WishlistProvider } from "@/contexts/WishlistContext";
+import { CartProvider } from "@/contexts/CartContext";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
@@ -20,6 +21,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProfileSettings from "./pages/ProfileSettings";
 import Wishlist from "./pages/Wishlist";
+import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,23 +37,26 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <WishlistProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/courses" element={<Courses />} />
-                <Route path="/course/:id" element={<CourseDetail />} />
-                <Route path="/free-learning" element={<FreeLearning />} />
-                <Route path="/subscribe" element={<Subscribe />} />
-                <Route path="/cv-business" element={<CVBusiness />} />
-                <Route path="/exchange" element={<Exchange />} />
-                <Route path="/my-learning" element={<MyLearning />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/settings/profile" element={<ProfileSettings />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <CartProvider>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/courses" element={<Courses />} />
+                  <Route path="/course/:id" element={<CourseDetail />} />
+                  <Route path="/free-learning" element={<FreeLearning />} />
+                  <Route path="/subscribe" element={<Subscribe />} />
+                  <Route path="/cv-business" element={<CVBusiness />} />
+                  <Route path="/exchange" element={<Exchange />} />
+                  <Route path="/my-learning" element={<MyLearning />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/settings/profile" element={<ProfileSettings />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </CartProvider>
             </WishlistProvider>
           </AuthProvider>
         </BrowserRouter>

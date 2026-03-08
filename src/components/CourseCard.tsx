@@ -3,10 +3,12 @@ import { Star, Users, Clock, ShoppingCart, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import { useCartContext } from "@/contexts/CartContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
   const { isWishlisted, toggleWishlist } = useWishlistContext();
+  const { isInCart, addToCart } = useCartContext();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
@@ -65,9 +67,14 @@ const CourseCard = ({ course }: { course: Course }) => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button size="sm" className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-1.5">
+            <Button
+              size="sm"
+              onClick={() => addToCart(course.id)}
+              disabled={isInCart(course.id)}
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-1.5"
+            >
               <ShoppingCart className="h-3.5 w-3.5" />
-              Add to Cart
+              {isInCart(course.id) ? "In Cart" : "Add to Cart"}
             </Button>
             <Button
               size="sm"
