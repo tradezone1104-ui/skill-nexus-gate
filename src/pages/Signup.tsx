@@ -53,8 +53,21 @@ const Signup = () => {
     setLoading(false);
   };
 
-  const handleGoogleSignup = () => {
-    toast({ title: "Coming Soon! 🚀" });
+  const handleGoogleSignup = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Signup failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
