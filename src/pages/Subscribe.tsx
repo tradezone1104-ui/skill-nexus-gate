@@ -102,7 +102,7 @@ const Subscribe = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<"monthly" | "yearly" | null>(null);
 
-  const handleSubscribe = async (plan: "monthly" | "yearly") => {
+  const handleSubscribe = async () => {
     if (!user) {
       navigate("/login");
       return;
@@ -111,10 +111,7 @@ const Subscribe = () => {
       toast({ title: "Already subscribed", description: "You already have an active premium subscription." });
       return;
     }
-    toast({
-      title: "Payment Coming Soon",
-      description: `Payment integration is not yet available. The ${plan} plan will be activated after payment is set up.`
-    });
+    navigate("/subscription-checkout");
   };
 
   return (

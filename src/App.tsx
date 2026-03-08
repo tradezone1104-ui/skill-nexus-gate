@@ -84,6 +84,8 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cv-coins" element={<CvCoins />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
