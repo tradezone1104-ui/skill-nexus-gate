@@ -106,7 +106,7 @@ const Index = () => {
       </section>
 
       {/* Wishlist preview - logged in only */}
-      {user && (
+      {user && wishlistCourses.length > 0 && (
         <section className="max-w-[1200px] mx-auto px-6 py-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
@@ -120,8 +120,8 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {wishlist.map(course => (
-              <CourseCard key={course.id} course={course} />
+            {wishlistCourses.map(course => (
+              <CourseCard key={course!.id} course={course!} />
             ))}
           </div>
         </section>
