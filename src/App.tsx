@@ -37,6 +37,8 @@ import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
 import CvCoins from "./pages/CvCoins";
 import Checkout from "./pages/Checkout";
+import SubscriptionCheckout from "./pages/SubscriptionCheckout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
