@@ -157,6 +157,7 @@ const CourseDetail = () => {
 
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
   const related = getCoursesByCategory(course.category).filter(c => c.id !== course.id).slice(0, 4);
+  const moreFromInstructor = courses.filter(c => c.instructor === course.instructor && c.id !== course.id).slice(0, 4);
   const purchased = isPurchased(course.id);
   const hasAccess = purchased || isSubscribed;
   const wishlisted = isWishlisted(course.id);
