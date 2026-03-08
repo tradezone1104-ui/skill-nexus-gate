@@ -27,7 +27,7 @@ const Courses = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const initialCategory = searchParams.get("category") || "all";
-  const initialSub = searchParams.get("sub") || "";
+  const initialSub = searchParams.get("subcategory") || "";
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);

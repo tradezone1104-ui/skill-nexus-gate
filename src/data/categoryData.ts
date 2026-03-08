@@ -65,7 +65,7 @@ export const categoryGroups: CategoryGroup[] = [
     ],
   },
   {
-    id: "indicators",
+    id: "indicators-tools",
     name: "Indicators & Tools",
     subcategories: [
       { id: "moving-averages", name: "Moving Averages" },
