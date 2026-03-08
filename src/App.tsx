@@ -29,6 +29,7 @@ import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
 import CourseList from "./pages/CourseList";
 import ReferAFriend from "./pages/ReferAFriend";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
