@@ -76,9 +76,10 @@ const Checkout = () => {
   const handleApplyCoupon = () => {
     if (coupon.trim().toUpperCase() === "CV10") {
       setCouponApplied(true);
+      setCouponError(false);
       toast.success("Coupon CV10 applied! 10% off");
     } else {
-      toast.error("Invalid coupon code");
+      setCouponError(true);
     }
   };
 
