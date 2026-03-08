@@ -185,6 +185,51 @@ export type Database = {
         }
         Relationships: []
       }
+      sell_requests: {
+        Row: {
+          admin_note: string | null
+          course_author: string
+          course_link: string | null
+          course_name: string
+          created_at: string
+          expected_price: number
+          id: string
+          platform: string
+          screenshot_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          course_author: string
+          course_link?: string | null
+          course_name: string
+          created_at?: string
+          expected_price?: number
+          id?: string
+          platform?: string
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          course_author?: string
+          course_link?: string | null
+          course_name?: string
+          created_at?: string
+          expected_price?: number
+          id?: string
+          platform?: string
+          screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
