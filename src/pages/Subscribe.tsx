@@ -165,9 +165,12 @@ const Subscribe = () => {
           <div className="bg-card rounded-2xl border border-border p-8 space-y-6 flex flex-col">
             <div>
               <h3 className="font-display font-bold text-xl text-foreground">Monthly Plan</h3>
-              <div className="mt-3">
-                <span className="font-display font-extrabold text-4xl text-foreground">₹499</span>
-                <span className="text-muted-foreground ml-1">/month</span>
+              <div className="mt-4">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-foreground" style={{ letterSpacing: "-0.5px" }}>₹</span>
+                  <span className="text-6xl font-extrabold text-foreground tracking-tighter" style={{ letterSpacing: "-2px" }}>499</span>
+                </div>
+                <span className="text-muted-foreground text-sm mt-1 block">per month</span>
               </div>
             </div>
             <ul className="space-y-3 flex-1">
