@@ -370,7 +370,7 @@ const Navbar = () => {
                     {/* Logout - fixed bottom */}
                     <div className="shrink-0 border-t border-border">
                       <button
-                        onClick={handleLogout}
+                        onClick={promptLogout}
                         className="w-full text-left px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10"
                       >
                         <LogOut className="h-3.5 w-3.5 inline mr-2" />
