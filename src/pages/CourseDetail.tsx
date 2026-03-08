@@ -99,6 +99,19 @@ const CourseDetail = () => {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const [isSticky, setIsSticky] = useState(false);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = thumbnailRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [course?.id]);
 
   const sections = useMemo(() => generateSections(course), [course?.id]);
 
