@@ -1,4 +1,4 @@
-import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink, Zap, ShieldAlert } from "lucide-react";
+import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink, Zap, ShieldAlert, CheckCircle2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -50,11 +50,20 @@ const leaderboard = [
   { id: "#W56R", earnings: "₹14,100", rank: 5 },
 ];
 
+type AppStatus = "none" | "pending" | "approved" | "rejected";
+
+const LockedOverlay = () => (
+  <div className="absolute inset-0 z-10 bg-background/70 backdrop-blur-[2px] rounded-xl flex flex-col items-center justify-center gap-2">
+    <Lock className="h-6 w-6 text-muted-foreground" />
+    <p className="text-sm font-medium text-muted-foreground">Available after admin approval</p>
+  </div>
+);
+
 const ResellerDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [withdrawMethod, setWithdrawMethod] = useState("upi");
-  const [approved, setApproved] = useState<boolean | null>(null);
+  const [appStatus, setAppStatus] = useState<AppStatus | null>(null);
   const monthlySales = 7;
   const currentTier = useMemo(() => getTier(monthlySales), [monthlySales]);
 
@@ -69,46 +78,33 @@ const ResellerDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       
-      if (!data || data.status !== "approved") {
-        setApproved(false);
-      } else {
-        setApproved(true);
+      if (!data) {
+        // No application at all — send back to CV Business
+        navigate("/cv-business");
+        return;
       }
+      setAppStatus(data.status as AppStatus);
     };
     checkApproval();
   }, [user, authLoading, navigate]);
 
+  const isApproved = appStatus === "approved";
+  const isPending = appStatus === "pending";
+
   const referralLink = `courseverse.com/?ref=${user?.user_metadata?.full_name?.toLowerCase().replace(/\s+/g, "") || user?.id?.slice(0, 8) || "user"}`;
 
   const copyLink = () => {
+    if (!isApproved) return;
     navigator.clipboard.writeText(`https://${referralLink}`);
     toast({ title: "Link Copied!", description: "Your referral link has been copied to clipboard." });
   };
 
   const handleWithdraw = () => {
+    if (!isApproved) return;
     toast({ title: "Withdrawal Coming Soon", description: "Payouts will be enabled once payment integration is live." });
   };
 
-  if (authLoading || approved === null) return null;
-
-  // Not approved — redirect to CV Business
-  if (!approved) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <CategoryBar />
-        <div className="container mx-auto px-4 py-20 text-center max-w-lg">
-          <ShieldAlert className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="font-display font-bold text-2xl text-foreground mb-2">Access Restricted</h1>
-          <p className="text-muted-foreground mb-6">You need an approved reseller application to access the dashboard.</p>
-          <Button onClick={() => navigate("/cv-business")} className="gap-2 rounded-xl">
-            Apply to Become a Reseller
-          </Button>
-        </div>
-        <Footer />
-      </div>
-    );
-  }
+  if (authLoading || appStatus === null) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -121,17 +117,44 @@ const ResellerDashboard = () => {
           <p className="text-muted-foreground mt-1">Track your sales and earnings.</p>
         </div>
 
+        {/* Status Banner */}
+        {isPending && (
+          <Card className="border-yellow-500/30 bg-yellow-500/5">
+            <CardContent className="flex items-start gap-4 p-6">
+              <Clock className="h-8 w-8 text-yellow-500 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">Your application is under review</h3>
+                <p className="text-sm mt-1 font-medium text-yellow-600">Status: Waiting for Admin Approval</p>
+                <p className="text-muted-foreground text-sm mt-1">Dashboard features will unlock once your application is approved.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {isApproved && (
+          <Card className="border-green-500/30 bg-green-500/5">
+            <CardContent className="flex items-start gap-4 p-6">
+              <CheckCircle2 className="h-8 w-8 text-green-500 shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-foreground text-lg">Application Approved — Welcome to CV Business!</h3>
+                <p className="text-muted-foreground text-sm mt-1">All dashboard features are now unlocked. Start sharing and earning!</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((s) => (
-            <Card key={s.label} className="border-border">
+            <Card key={s.label} className="border-border relative overflow-hidden">
+              {isPending && <LockedOverlay />}
               <CardContent className="flex items-center gap-4 p-5">
                 <div className="shrink-0 w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center">
                   <s.icon className={`h-5 w-5 ${s.color}`} />
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">{s.label}</p>
-                  <p className="text-xl font-bold text-foreground">{s.value}</p>
+                  <p className="text-xl font-bold text-foreground">{isPending ? "—" : s.value}</p>
                 </div>
               </CardContent>
             </Card>
@@ -139,7 +162,8 @@ const ResellerDashboard = () => {
         </div>
 
         {/* Commission Tier */}
-        <Card className="border-border">
+        <Card className="border-border relative overflow-hidden">
+          {isPending && <LockedOverlay />}
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Zap className="h-5 w-5 text-primary" /> Commission Tier
@@ -178,7 +202,8 @@ const ResellerDashboard = () => {
         </Card>
 
         {/* Referral Link */}
-        <Card className="border-border">
+        <Card className="border-border relative overflow-hidden">
+          {isPending && <LockedOverlay />}
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground">Your Referral Link</CardTitle>
           </CardHeader>
@@ -188,7 +213,7 @@ const ResellerDashboard = () => {
                 <ExternalLink className="h-4 w-4 text-muted-foreground shrink-0" />
                 {referralLink}
               </div>
-              <Button onClick={copyLink} className="gap-2 rounded-xl shrink-0">
+              <Button onClick={copyLink} disabled={isPending} className="gap-2 rounded-xl shrink-0">
                 <Copy className="h-4 w-4" /> Copy Link
               </Button>
             </div>
@@ -197,7 +222,8 @@ const ResellerDashboard = () => {
 
         {/* Sales History + Leaderboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="border-border lg:col-span-2">
+          <Card className="border-border lg:col-span-2 relative overflow-hidden">
+            {isPending && <LockedOverlay />}
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-semibold text-foreground">Sales History</CardTitle>
             </CardHeader>
@@ -229,7 +255,8 @@ const ResellerDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card className="border-border">
+          <Card className="border-border relative overflow-hidden">
+            {isPending && <LockedOverlay />}
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-yellow-500" /> Top Resellers
@@ -252,7 +279,8 @@ const ResellerDashboard = () => {
         </div>
 
         {/* Withdraw */}
-        <Card className="border-border">
+        <Card className="border-border relative overflow-hidden">
+          {isPending && <LockedOverlay />}
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground">Withdraw Earnings</CardTitle>
           </CardHeader>
@@ -263,7 +291,7 @@ const ResellerDashboard = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-4">
               <div className="space-y-1.5 flex-1 max-w-xs">
                 <label className="text-sm font-medium text-foreground">Withdraw Method</label>
-                <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
+                <Select value={withdrawMethod} onValueChange={setWithdrawMethod} disabled={isPending}>
                   <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="upi">UPI</SelectItem>
@@ -272,7 +300,7 @@ const ResellerDashboard = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={handleWithdraw} className="gap-2 rounded-xl">
+              <Button onClick={handleWithdraw} disabled={isPending} className="gap-2 rounded-xl">
                 <Wallet className="h-4 w-4" /> Withdraw Earnings
               </Button>
             </div>
