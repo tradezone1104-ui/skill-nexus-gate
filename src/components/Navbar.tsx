@@ -63,6 +63,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
   const { cartCount } = useCartContext();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification, clearAll } = useNotifications();
   const isLoggedIn = !!user;
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
