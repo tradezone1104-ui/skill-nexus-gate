@@ -422,7 +422,7 @@ const Navbar = () => {
                 <Link to="/cart" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Cart</Link>
                 <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Exchange Courses</Link>
                 <Link to="/settings" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Account Settings</Link>
-                <button onClick={() => { setMobileOpen(false); handleLogout(); }} className="text-left px-3 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium">Log Out</button>
+                <button onClick={() => { setMobileOpen(false); promptLogout(); }} className="text-left px-3 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium">Log Out</button>
               </>
             ) : (
               <>
