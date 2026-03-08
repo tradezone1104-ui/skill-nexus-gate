@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 
 const profileMenuItems = [
+  { label: "Course List", to: "/course-list" },
+  { divider: true },
   { section: "Learning" },
   { label: "My Learning", to: "/my-learning" },
   { label: "My Cart", to: "/cart" },
