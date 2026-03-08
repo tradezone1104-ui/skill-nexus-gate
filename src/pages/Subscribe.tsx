@@ -343,7 +343,7 @@ const Subscribe = () => {
             <Button
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe("yearly")}
+              onClick={() => handleSubscribe()}
               disabled={!!loading || isSubscribed}>
               
               Get Yearly Plan — ₹3,999
