@@ -13,7 +13,7 @@ const profileMenuItems = [
   { label: "My Learning", to: "/my-learning" },
   { label: "My Cart", to: "/cart" },
   { label: "My Wishlist", to: "/wishlist" },
-  { label: "Exchange Course on CV", to: "/exchange" },
+  { label: "Exchange Course", to: "/exchange" },
   { label: "Refer a Friend", to: "/refer", badge: "Earn 20% CV Coins" },
   { divider: true },
   { section: "Account" },
