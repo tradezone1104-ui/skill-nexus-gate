@@ -83,6 +83,33 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          comment: string
+          course_id: string
+          created_at: string
+          id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string
+          course_id: string
+          created_at?: string
+          id?: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          course_id?: string
+          created_at?: string
+          id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlist: {
         Row: {
           course_id: string
