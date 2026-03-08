@@ -33,22 +33,25 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/course/:id" element={<CourseDetail />} />
-              <Route path="/free-learning" element={<FreeLearning />} />
-              <Route path="/subscribe" element={<Subscribe />} />
-              <Route path="/cv-business" element={<CVBusiness />} />
-              <Route path="/exchange" element={<Exchange />} />
-              <Route path="/my-learning" element={<MyLearning />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/settings/profile" element={<ProfileSettings />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <WishlistProvider>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/course/:id" element={<CourseDetail />} />
+                <Route path="/free-learning" element={<FreeLearning />} />
+                <Route path="/subscribe" element={<Subscribe />} />
+                <Route path="/cv-business" element={<CVBusiness />} />
+                <Route path="/exchange" element={<Exchange />} />
+                <Route path="/my-learning" element={<MyLearning />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/settings/profile" element={<ProfileSettings />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </WishlistProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
