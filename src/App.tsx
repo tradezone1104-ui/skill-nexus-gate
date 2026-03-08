@@ -31,6 +31,7 @@ import CourseList from "./pages/CourseList";
 import ReferAFriend from "./pages/ReferAFriend";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import FloatingSupport from "./components/FloatingSupport";
 
 const queryClient = new QueryClient();
 
