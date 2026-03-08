@@ -49,6 +49,7 @@ export type Database = {
           updated_at: string
           user_id: string
           want_course_name: string
+          want_type: string
         }
         Insert: {
           admin_note?: string | null
@@ -63,6 +64,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           want_course_name: string
+          want_type?: string
         }
         Update: {
           admin_note?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           want_course_name?: string
+          want_type?: string
         }
         Relationships: []
       }
@@ -188,6 +191,7 @@ export type Database = {
       sell_requests: {
         Row: {
           admin_note: string | null
+          admin_offer_price: number | null
           course_author: string
           course_link: string | null
           course_name: string
@@ -202,6 +206,7 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
+          admin_offer_price?: number | null
           course_author: string
           course_link?: string | null
           course_name: string
@@ -216,6 +221,7 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
+          admin_offer_price?: number | null
           course_author?: string
           course_link?: string | null
           course_name?: string
