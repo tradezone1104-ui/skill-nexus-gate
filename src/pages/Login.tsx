@@ -41,8 +41,21 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleGoogleLogin = () => {
-    toast({ title: "Coming Soon! 🚀" });
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
