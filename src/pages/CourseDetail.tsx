@@ -550,6 +550,16 @@ const CourseDetail = () => {
           </div>
         </div>
 
+        {/* More from Instructor */}
+        {moreFromInstructor.length > 0 && (
+          <RevealSection className="mt-16">
+            <h2 className="font-display font-bold text-2xl text-foreground mb-6">More from {course.instructor}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto">
+              {moreFromInstructor.map(c => <CourseCard key={c.id} course={c} />)}
+            </div>
+          </RevealSection>
+        )}
+
         {/* Related */}
         {related.length > 0 && (
           <RevealSection className="mt-16">
