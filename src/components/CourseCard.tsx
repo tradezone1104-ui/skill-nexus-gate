@@ -2,9 +2,11 @@ import { Link } from "react-router-dom";
 import { Star, Users, Clock, ShoppingCart, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
+  const { isWishlisted, toggleWishlist } = useWishlistContext();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
@@ -67,8 +69,13 @@ const CourseCard = ({ course }: { course: Course }) => {
               <ShoppingCart className="h-3.5 w-3.5" />
               Add to Cart
             </Button>
-            <Button size="sm" variant="outline" className="border-border text-muted-foreground hover:text-primary hover:border-primary">
-              <Heart className="h-4 w-4" />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => toggleWishlist(course.id)}
+              className={`border-border hover:border-primary ${isWishlisted(course.id) ? "text-destructive border-destructive/50" : "text-muted-foreground hover:text-primary"}`}
+            >
+              <Heart className={`h-4 w-4 ${isWishlisted(course.id) ? "fill-current" : ""}`} />
             </Button>
           </div>
         </div>

@@ -6,8 +6,9 @@ import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
-import { courses, getFeaturedCourses } from "@/data/courses";
+import { courses, getFeaturedCourses, getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
+import { useWishlistContext } from "@/contexts/WishlistContext";
 
 const stats = [
   { icon: BookOpen, value: "2,000+", label: "Courses" },
@@ -17,13 +18,13 @@ const stats = [
 
 const Index = () => {
   const { user, profile } = useAuth();
+  const { wishlistIds } = useWishlistContext();
   const featured = getFeaturedCourses();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner";
 
-  // Logged-in user sections
   const continueLearning = courses.slice(0, 4);
   const recommended = courses.slice(8, 16);
-  const wishlist = courses.slice(24, 28);
+  const wishlistCourses = Array.from(wishlistIds).map(getCourseById).filter(Boolean).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background">
@@ -105,7 +106,7 @@ const Index = () => {
       </section>
 
       {/* Wishlist preview - logged in only */}
-      {user && (
+      {user && wishlistCourses.length > 0 && (
         <section className="max-w-[1200px] mx-auto px-6 py-10">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
@@ -119,8 +120,8 @@ const Index = () => {
             </Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {wishlist.map(course => (
-              <CourseCard key={course.id} course={course} />
+            {wishlistCourses.map(course => (
+              <CourseCard key={course!.id} course={course!} />
             ))}
           </div>
         </section>
