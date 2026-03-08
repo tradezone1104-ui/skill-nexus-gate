@@ -19,7 +19,7 @@ import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import CourseReviews from "@/components/CourseReviews";
 import CategoryBar from "@/components/CategoryBar";
-import { getCourseById, getCoursesByCategory } from "@/data/courses";
+import { getCourseById, getCoursesByCategory, courses } from "@/data/courses";
 import { categoryGroups } from "@/data/categoryData";
 import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
