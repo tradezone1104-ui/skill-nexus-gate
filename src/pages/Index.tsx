@@ -133,7 +133,7 @@ const Index = () => {
           title="Latest Courses"
           icon={<BookOpen className="h-5 w-5 text-primary" />}
           linkTo="/courses"
-          linkText="Explore All Courses"
+          linkText="View All Courses"
         />
         <CourseScrollGrid>
           {latestCourses.map((course) => (
@@ -148,7 +148,7 @@ const Index = () => {
           title="Top Selling Courses 🔥"
           icon={<TrendingUp className="h-5 w-5 text-primary" />}
           linkTo="/courses"
-          linkText="Explore All Courses"
+          linkText="View All Courses"
         />
         <CourseScrollGrid>
           {topSelling.map((course) => (
@@ -164,10 +164,10 @@ const Index = () => {
             title="Recommended For You"
             icon={<Users className="h-5 w-5 text-primary" />}
             linkTo="/courses"
-            linkText="Explore All Courses"
-          />
-          <CourseScrollGrid>
-            {recommended.map((course) => (
+          linkText="View All Courses"
+        />
+        <CourseScrollGrid>
+          {recommended.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </CourseScrollGrid>
@@ -180,7 +180,7 @@ const Index = () => {
           title="Featured Courses ⭐"
           icon={<StarIcon className="h-5 w-5 text-primary" />}
           linkTo="/courses"
-          linkText="Explore All Courses"
+          linkText="View All Courses"
         />
         <CourseScrollGrid>
           {featured.map((course) => (
