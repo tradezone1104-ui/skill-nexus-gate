@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Heart, ShoppingCart, Bell, User, Sun, Moon, LogIn, UserPlus } from "lucide-react";
+import { Search, Menu, X, Heart, ShoppingCart, Bell, User, Sun, Moon, LogIn, UserPlus, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const profileMenuItems = [
   { section: "Learning" },
@@ -24,7 +25,6 @@ const profileMenuItems = [
   { divider: true },
   { label: "Edit Profile", to: "/settings/profile" },
   { label: "Help and Support", to: "/support" },
-  { label: "Log Out", to: "/logout", destructive: true },
 ];
 
 const Navbar = () => {
@@ -34,9 +34,8 @@ const Navbar = () => {
   const profileRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-
-  // TODO: Replace with real auth state
-  const [isLoggedIn] = useState(false);
+  const { user, profile, signOut } = useAuth();
+  const isLoggedIn = !!user;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -56,6 +55,12 @@ const Navbar = () => {
     }
   };
 
+  const handleLogout = async () => {
+    setProfileOpen(false);
+    await signOut();
+    navigate("/");
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border w-full">
       <div className="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
@@ -67,18 +72,20 @@ const Navbar = () => {
             </div>
             <span className="font-bold text-lg text-foreground hidden sm:block tracking-tight">CourseVerse</span>
           </Link>
-          <div className="hidden lg:flex items-center gap-1">
-            <Link to="/free-learning">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                Free Learning
-              </Button>
-            </Link>
-            <Link to="/subscribe">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                Subscribe
-              </Button>
-            </Link>
-          </div>
+          {!isLoggedIn && (
+            <div className="hidden lg:flex items-center gap-1">
+              <Link to="/free-learning">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  Free Learning
+                </Button>
+              </Link>
+              <Link to="/subscribe">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  Subscribe
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Center: Search bar */}
@@ -98,16 +105,6 @@ const Navbar = () => {
         <div className="flex items-center gap-1 shrink-0">
           {isLoggedIn && (
             <div className="hidden lg:flex items-center gap-1 mr-1">
-              <Link to="/cv-business">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                  CV Business
-                </Button>
-              </Link>
-              <Link to="/exchange">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-                  Exchange
-                </Button>
-              </Link>
               <Link to="/my-learning">
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
                   My Learning
@@ -149,6 +146,11 @@ const Navbar = () => {
                 </Button>
                 {profileOpen && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-card py-2 animate-fade-in z-50">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-border">
+                      <p className="text-sm font-semibold text-foreground">{profile?.full_name || "User"}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                    </div>
                     {profileMenuItems.map((item, i) => {
                       if ('divider' in item) return <div key={i} className="my-1 border-t border-border" />;
                       if ('section' in item) return <div key={i} className="px-4 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{item.section}</div>;
@@ -157,7 +159,7 @@ const Navbar = () => {
                           key={i}
                           to={item.to!}
                           onClick={() => setProfileOpen(false)}
-                          className={`block px-4 py-2 text-sm transition-colors ${item.destructive ? 'text-destructive hover:bg-destructive/10' : 'text-foreground hover:bg-muted'}`}
+                          className="block px-4 py-2 text-sm transition-colors text-foreground hover:bg-muted"
                         >
                           <span>{item.label}</span>
                           {'badge' in item && item.badge && (
@@ -166,6 +168,14 @@ const Navbar = () => {
                         </Link>
                       );
                     })}
+                    <div className="my-1 border-t border-border" />
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left block px-4 py-2 text-sm transition-colors text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="h-3.5 w-3.5 inline mr-2" />
+                      Log Out
+                    </button>
                   </div>
                 )}
               </div>
@@ -204,19 +214,19 @@ const Navbar = () => {
             </div>
           </form>
           <div className="flex flex-col gap-1">
-            <Link to="/free-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Free Learning</Link>
-            <Link to="/subscribe" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Subscribe</Link>
             {isLoggedIn ? (
               <>
-                <Link to="/cv-business" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">CV Business</Link>
-                <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Exchange Courses</Link>
                 <Link to="/my-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">My Learning</Link>
                 <Link to="/wishlist" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Wishlist</Link>
                 <Link to="/cart" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Cart</Link>
+                <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Exchange Courses</Link>
                 <Link to="/settings" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Account Settings</Link>
+                <button onClick={() => { setMobileOpen(false); handleLogout(); }} className="text-left px-3 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium">Log Out</button>
               </>
             ) : (
               <>
+                <Link to="/free-learning" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Free Learning</Link>
+                <Link to="/subscribe" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Subscribe</Link>
                 <Link to="/login" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Login</Link>
                 <Link to="/signup" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-primary font-semibold hover:bg-muted transition-colors text-sm">Sign Up</Link>
               </>
