@@ -2,10 +2,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Star, Users, Clock, BookOpen, CheckCircle, MessageCircle, Heart,
   ShoppingCart, Play, ChevronDown, ChevronUp, Globe, Calendar, Award,
-  Shield, Lock, Timer
+  Shield, Lock, Timer, Gift, Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbSeparator, BreadcrumbPage
