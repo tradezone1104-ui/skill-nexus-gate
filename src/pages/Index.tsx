@@ -133,7 +133,7 @@ const Index = () => {
           title="Latest Courses"
           icon={<BookOpen className="h-5 w-5 text-primary" />}
           linkTo="/courses"
-          linkText="Explore All Courses"
+          linkText="View All Courses"
         />
         <CourseScrollGrid>
           {latestCourses.map((course) => (
