@@ -316,107 +316,110 @@ const Checkout = () => {
 
           {/* RIGHT — Order Summary (sticky) */}
           <div className="lg:col-span-1">
-            <div className="bg-card border border-border rounded-xl p-6 space-y-5 sticky top-20">
-              <h2 className="font-display font-bold text-lg text-foreground">Order Summary</h2>
-
-              <div className="space-y-2.5 text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Original Price</span>
-                  <span>₹{course.originalPrice}</span>
-                </div>
-                <div className="flex justify-between text-primary">
-                  <span>Discount ({discountPercent}% Off)</span>
-                  <span>-₹{discount}</span>
+            <div className="sticky top-20 space-y-4">
+              {/* Coupon Code */}
+              <div className="bg-card border border-border rounded-xl p-5">
+                <p className="text-sm font-semibold text-foreground mb-3">Have a coupon?</p>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Enter coupon code"
+                    value={coupon}
+                    onChange={(e) => {
+                      setCoupon(e.target.value);
+                      if (!couponApplied) setCouponError(false);
+                    }}
+                    disabled={couponApplied}
+                    className="bg-background text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={handleApplyCoupon}
+                    disabled={couponApplied || !coupon.trim()}
+                  >
+                    {couponApplied ? "Applied" : "Apply"}
+                  </Button>
                 </div>
                 {couponApplied && (
+                  <p className="text-xs text-primary mt-2">Coupon applied! You saved ₹{couponDiscount}</p>
+                )}
+                {couponError && (
+                  <p className="text-xs text-destructive mt-2">Invalid coupon code</p>
+                )}
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-card border border-border rounded-xl p-6 space-y-5">
+                <h2 className="font-display font-bold text-lg text-foreground">Order Summary</h2>
+
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Original Price</span>
+                    <span>₹{course.originalPrice}</span>
+                  </div>
                   <div className="flex justify-between text-primary">
-                    <span>Coupon (CV10)</span>
-                    <span>-₹{couponDiscount}</span>
+                    <span>Discount ({discountPercent}% Off)</span>
+                    <span>-₹{discount}</span>
                   </div>
-                )}
-                {useCoins && coinDiscount > 0 && (
-                  <div className="flex justify-between text-[hsl(var(--warning))]">
-                    <span>CV Coins ({coinDiscount})</span>
-                    <span>-₹{coinDiscount}</span>
-                  </div>
-                )}
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between font-display font-bold text-xl text-foreground">
-                <span>Total (1 course)</span>
-                <span>₹{total}</span>
-              </div>
-
-              <p className="text-[11px] text-muted-foreground leading-relaxed">
-                By completing your purchase, you agree to our{" "}
-                <span className="underline cursor-pointer">Terms of Use</span>
-              </p>
-
-              <Button
-                size="lg"
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base"
-                onClick={handlePayment}
-                disabled={processing || isPurchased(course.id)}
-              >
-                <Lock className="mr-2 h-4 w-4" />
-                {processing ? "Processing…" : "Proceed"}
-              </Button>
-
-              <p className="text-[11px] text-muted-foreground text-center">
-                7-day refund only if any issue found
-              </p>
-
-              <Separator />
-
-              {/* Apply Coupon */}
-              <div>
-                <button
-                  onClick={() => setShowCoupon(!showCoupon)}
-                  className="text-sm text-foreground hover:underline transition-all"
-                >
-                  Apply Coupon
-                </button>
-                {showCoupon && (
-                  <div className="flex gap-2 mt-3">
-                    <Input
-                      placeholder="Enter coupon code"
-                      value={coupon}
-                      onChange={(e) => setCoupon(e.target.value)}
-                      disabled={couponApplied}
-                      className="bg-background text-sm"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleApplyCoupon}
-                      disabled={couponApplied || !coupon.trim()}
-                    >
-                      {couponApplied ? "Applied" : "Apply"}
-                    </Button>
-                  </div>
-                )}
-                {couponApplied && <p className="text-xs text-primary mt-1">10% discount applied!</p>}
-              </div>
-
-              {/* CV Coins */}
-              {balance > 0 && (
-                <>
-                  <Separator />
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                        <Coins className="h-4 w-4 text-[hsl(var(--warning))]" /> Use CV Coins
-                      </p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {balance} coins available · Max ₹{maxCoins} off
-                      </p>
+                  {couponApplied && (
+                    <div className="flex justify-between text-primary">
+                      <span>Coupon (CV10)</span>
+                      <span>-₹{couponDiscount}</span>
                     </div>
-                    <Switch checked={useCoins} onCheckedChange={setUseCoins} />
-                  </div>
-                </>
-              )}
+                  )}
+                  {useCoins && coinDiscount > 0 && (
+                    <div className="flex justify-between text-[hsl(var(--warning))]">
+                      <span>CV Coins ({coinDiscount})</span>
+                      <span>-₹{coinDiscount}</span>
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-between font-display font-bold text-xl text-foreground">
+                  <span>Total (1 course)</span>
+                  <span>₹{total}</span>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  By completing your purchase, you agree to our{" "}
+                  <span className="underline cursor-pointer">Terms of Use</span>
+                </p>
+
+                <Button
+                  size="lg"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base"
+                  onClick={handlePayment}
+                  disabled={processing || isPurchased(course.id)}
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  {processing ? "Processing…" : "Proceed"}
+                </Button>
+
+                <p className="text-[11px] text-muted-foreground text-center">
+                  7-day refund only if any issue found
+                </p>
+
+                {/* CV Coins */}
+                {balance > 0 && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                          <Coins className="h-4 w-4 text-[hsl(var(--warning))]" /> Use CV Coins
+                        </p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {balance} coins available · Max ₹{maxCoins} off
+                        </p>
+                      </div>
+                      <Switch checked={useCoins} onCheckedChange={setUseCoins} />
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
