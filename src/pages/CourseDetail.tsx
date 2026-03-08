@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
+import CourseReviews from "@/components/CourseReviews";
 import CategoryBar from "@/components/CategoryBar";
 import { getCourseById, getCoursesByCategory } from "@/data/courses";
 import { useState } from "react";
