@@ -14,7 +14,7 @@ interface Review {
   rating: number;
   comment: string;
   created_at: string;
-  profiles?: { full_name: string | null; avatar_url: string | null } | null;
+  displayName?: string;
 }
 
 interface CourseReviewsProps {
