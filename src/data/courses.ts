@@ -21,13 +21,6 @@ export interface Course {
   featured?: boolean;
 }
 
-export const categories = categoryGroups.map((cg) => ({
-  id: cg.id,
-  name: cg.name,
-  icon: categoryIconMap[cg.id] || "📚",
-  count: 0, // will be computed after generation
-}));
-
 const categoryIconMap: Record<string, string> = {
   trading: "📈",
   options: "📋",
@@ -38,6 +31,13 @@ const categoryIconMap: Record<string, string> = {
   "crypto-forex": "🪙",
   "algo-ai": "🤖",
 };
+
+export const categories = categoryGroups.map((cg) => ({
+  id: cg.id,
+  name: cg.name,
+  icon: categoryIconMap[cg.id] || "📚",
+  count: 0,
+}));
 
 const thumbnails = [
   "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80",
