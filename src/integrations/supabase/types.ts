@@ -59,6 +59,30 @@ export type Database = {
         }
         Relationships: []
       }
+      purchases: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          price_paid: number
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          price_paid: number
+          user_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          price_paid?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlist: {
         Row: {
           course_id: string

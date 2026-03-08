@@ -22,6 +22,7 @@ import ResetPassword from "./pages/ResetPassword";
 import ProfileSettings from "./pages/ProfileSettings";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
+import PurchaseHistory from "./pages/PurchaseHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
                   <Route path="/my-learning" element={<MyLearning />} />
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/purchase-history" element={<PurchaseHistory />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
