@@ -58,38 +58,38 @@ const Navbar = () => {
 
   return (
     <nav className="sticky top-0 z-50 bg-background border-b border-border">
-      <div className="max-w-[1200px] mx-auto px-4 h-16 flex items-center">
-        {/* Logo - far left */}
-        <Link to="/" className="flex items-center gap-2 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm tracking-tight">CV</span>
+      <div className="max-w-[1200px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
+        {/* Left: Logo + Nav links */}
+        <div className="flex items-center gap-1 shrink-0">
+          <Link to="/" className="flex items-center gap-2 shrink-0 mr-4">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold text-sm tracking-tight">CV</span>
+            </div>
+            <span className="font-bold text-lg text-foreground hidden sm:block tracking-tight">CourseVerse</span>
+          </Link>
+          <div className="hidden lg:flex items-center gap-1">
+            <Link to="/free-learning">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                Free Learning
+              </Button>
+            </Link>
+            <Link to="/subscribe">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                Subscribe
+              </Button>
+            </Link>
           </div>
-          <span className="font-bold text-lg text-foreground hidden sm:block tracking-tight">CourseVerse</span>
-        </Link>
-
-        {/* Nav links */}
-        <div className="hidden lg:flex items-center gap-1 ml-6">
-          <Link to="/free-learning">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-              Free Learning
-            </Button>
-          </Link>
-          <Link to="/subscribe">
-            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
-              Subscribe
-            </Button>
-          </Link>
         </div>
 
-        {/* Search - centered */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-auto">
+        {/* Center: Search bar */}
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[600px]">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search for courses"
-              className="pl-10 bg-muted border-border focus:border-primary h-10 text-sm"
+              className="pl-11 bg-muted border-border focus:border-primary h-11 text-sm rounded-full"
             />
           </div>
         </form>
