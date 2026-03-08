@@ -21,6 +21,14 @@ const slides = [
     gradient: "from-accent/20 via-primary/10 to-transparent",
   },
   {
+    title: "Free Learning",
+    subtitle: "Access free trading courses, PDFs, tools and resources",
+    description: "Start your journey with our collection of free courses, guides, and trading tools.",
+    cta: "Explore Free Resources",
+    ctaLink: "/free-learning",
+    gradient: "from-success/20 via-accent/10 to-transparent",
+  },
+  {
     title: "Course Bundles",
     subtitle: "Save More, Learn More",
     description: "Bundle your favourite courses together and save up to 60%.",
