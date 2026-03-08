@@ -28,6 +28,7 @@ import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
 import CourseList from "./pages/CourseList";
+import ReferAFriend from "./pages/ReferAFriend";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
