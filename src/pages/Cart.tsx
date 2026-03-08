@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import { useCartContext } from "@/contexts/CartContext";
+import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,12 +14,14 @@ import { toast } from "sonner";
 
 const Cart = () => {
   const { cartIds, loading, removeFromCart } = useCartContext();
+  const { isPurchased, addPurchasedIds } = usePurchaseContext();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [checkingOut, setCheckingOut] = useState(false);
   const courses = Array.from(cartIds)
     .map(getCourseById)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((c) => !isPurchased(c!.id));
 
   const totalPrice = courses.reduce((sum, c) => sum + (c?.price ?? 0), 0);
   const totalOriginal = courses.reduce((sum, c) => sum + (c?.originalPrice ?? 0), 0);
@@ -119,6 +122,7 @@ const Cart = () => {
                       if (error) throw error;
                       // Clear cart after purchase
                       for (const c of courses) await removeFromCart(c!.id);
+                      addPurchasedIds(courses.map((c) => c!.id));
                       toast.success("Purchase complete! 🎉");
                       navigate("/purchase-history");
                     } catch (e: any) {

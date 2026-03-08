@@ -1,14 +1,16 @@
 import { Link } from "react-router-dom";
-import { Star, Users, Clock, ShoppingCart, Heart } from "lucide-react";
+import { Star, Users, Clock, ShoppingCart, Heart, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { useCartContext } from "@/contexts/CartContext";
+import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
   const { isWishlisted, toggleWishlist } = useWishlistContext();
   const { isInCart, addToCart } = useCartContext();
+  const { isPurchased } = usePurchaseContext();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
@@ -21,10 +23,16 @@ const CourseCard = ({ course }: { course: Course }) => {
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
-              {discount}% OFF
-            </Badge>
+          <div className="absolute top-3 left-3 flex gap-1.5">
+            {isPurchased(course.id) ? (
+              <Badge className="bg-emerald-600 text-primary-foreground text-xs font-semibold gap-1">
+                <CheckCircle className="h-3 w-3" /> Purchased
+              </Badge>
+            ) : (
+              <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
+                {discount}% OFF
+              </Badge>
+            )}
           </div>
           <div className="absolute top-3 right-3">
             <Badge variant="secondary" className="bg-secondary/90 text-secondary-foreground text-xs">
@@ -66,25 +74,43 @@ const CourseCard = ({ course }: { course: Course }) => {
             <span className="text-xs text-muted-foreground">{course.instructor}</span>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              onClick={() => addToCart(course.id)}
-              disabled={isInCart(course.id)}
-              className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-1.5"
-            >
-              <ShoppingCart className="h-3.5 w-3.5" />
-              {isInCart(course.id) ? "In Cart" : "Add to Cart"}
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => toggleWishlist(course.id)}
-              className={`border-border hover:border-primary ${isWishlisted(course.id) ? "text-destructive border-destructive/50" : "text-muted-foreground hover:text-primary"}`}
-            >
-              <Heart className={`h-4 w-4 ${isWishlisted(course.id) ? "fill-current" : ""}`} />
-            </Button>
-          </div>
+          {isPurchased(course.id) ? (
+            <div className="flex items-center gap-2">
+              <Link to={`/course/${course.id}`} className="flex-1">
+                <Button size="sm" className="w-full bg-emerald-600 text-primary-foreground hover:bg-emerald-700 text-xs gap-1.5">
+                  <CheckCircle className="h-3.5 w-3.5" /> View Course
+                </Button>
+              </Link>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toggleWishlist(course.id)}
+                className={`border-border hover:border-primary ${isWishlisted(course.id) ? "text-destructive border-destructive/50" : "text-muted-foreground hover:text-primary"}`}
+              >
+                <Heart className={`h-4 w-4 ${isWishlisted(course.id) ? "fill-current" : ""}`} />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={() => addToCart(course.id)}
+                disabled={isInCart(course.id)}
+                className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-1.5"
+              >
+                <ShoppingCart className="h-3.5 w-3.5" />
+                {isInCart(course.id) ? "In Cart" : "Add to Cart"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => toggleWishlist(course.id)}
+                className={`border-border hover:border-primary ${isWishlisted(course.id) ? "text-destructive border-destructive/50" : "text-muted-foreground hover:text-primary"}`}
+              >
+                <Heart className={`h-4 w-4 ${isWishlisted(course.id) ? "fill-current" : ""}`} />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
