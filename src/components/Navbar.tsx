@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Heart, ShoppingCart, Bell, User, Sun, Moon, LogIn, UserPlus, LogOut } from "lucide-react";
+import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,20 +28,48 @@ const profileMenuItems = [
   { label: "Help and Support", to: "/support" },
 ];
 
+const notificationItems = [
+  { id: 1, title: "New course added", desc: "Options Trading Masterclass is now available", time: "2h ago" },
+  { id: 2, title: "Subscription reminder", desc: "Your premium membership renews in 3 days", time: "1d ago" },
+  { id: 3, title: "Discount offer", desc: "Get 40% off on all trading bundles this weekend", time: "2d ago" },
+];
+
+const getInitials = (name: string | null | undefined): string => {
+  if (!name || !name.trim()) return "U";
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) {
+    return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  }
+  return name.slice(0, 2).toUpperCase();
+};
+
 const Navbar = () => {
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const themeRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
   const isLoggedIn = !!user;
+
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
+  const initials = getInitials(displayName);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
+      }
+      if (themeRef.current && !themeRef.current.contains(e.target as Node)) {
+        setThemeOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setNotifOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -112,44 +141,151 @@ const Navbar = () => {
               </Link>
             </div>
           )}
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="text-muted-foreground hover:text-foreground h-9 w-9">
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
 
-          {isLoggedIn ? (
-            <>
-              <Link to="/wishlist">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/cart">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
-                  <ShoppingCart className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link to="/notifications" className="hidden md:inline-flex">
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
-                  <Bell className="h-4 w-4" />
-                </Button>
-              </Link>
-
-              {/* Profile dropdown */}
-              <div className="relative hidden md:block" ref={profileRef}>
+          {/* Theme Toggle Dropdown */}
+          <div className="relative" ref={themeRef}>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setProfileOpen(!profileOpen)}
+                  onClick={() => setThemeOpen(!themeOpen)}
                   className="text-muted-foreground hover:text-foreground h-9 w-9"
                 >
-                  <User className="h-4 w-4" />
+                  {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </Button>
-                {profileOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-card py-2 animate-fade-in z-50">
-                    {/* User info */}
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                Theme Settings
+              </TooltipContent>
+            </Tooltip>
+            {themeOpen && (
+              <div className="absolute right-0 top-full mt-2 w-40 bg-card border border-border rounded-xl shadow-lg py-1 animate-fade-in z-50">
+                <button
+                  onClick={() => { setTheme("light"); setThemeOpen(false); }}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Sun className="h-4 w-4" /> Light Mode
+                  </span>
+                  {theme === "light" && <Check className="h-4 w-4 text-primary" />}
+                </button>
+                <button
+                  onClick={() => { setTheme("dark"); setThemeOpen(false); }}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
+                >
+                  <span className="flex items-center gap-2">
+                    <Moon className="h-4 w-4" /> Dark Mode
+                  </span>
+                  {theme === "dark" && <Check className="h-4 w-4 text-primary" />}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {isLoggedIn ? (
+            <>
+              {/* Wishlist */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/wishlist">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                      <Heart className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Wishlist
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Cart */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/cart">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                      <ShoppingCart className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  My Cart
+                </TooltipContent>
+              </Tooltip>
+
+              {/* Notifications Dropdown */}
+              <div className="relative hidden md:block" ref={notifRef}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setNotifOpen(!notifOpen)}
+                      className="text-muted-foreground hover:text-foreground h-9 w-9 relative"
+                    >
+                      <Bell className="h-4 w-4" />
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    Notifications
+                  </TooltipContent>
+                </Tooltip>
+                {notifOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl shadow-lg animate-fade-in z-50">
                     <div className="px-4 py-3 border-b border-border">
-                      <p className="text-sm font-semibold text-foreground">{profile?.full_name || "User"}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                      <h3 className="font-semibold text-sm text-foreground">Updates & Notifications</h3>
+                    </div>
+                    <div className="max-h-72 overflow-y-auto">
+                      {notificationItems.map((n) => (
+                        <div key={n.id} className="px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-b-0">
+                          <p className="text-sm font-medium text-foreground">{n.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{n.desc}</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">{n.time}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <Link
+                      to="/notifications"
+                      onClick={() => setNotifOpen(false)}
+                      className="block px-4 py-2.5 text-center text-sm text-primary hover:bg-muted transition-colors border-t border-border"
+                    >
+                      View all notifications
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile dropdown with avatar */}
+              <div className="relative hidden md:block" ref={profileRef}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setProfileOpen(!profileOpen)}
+                      className="h-9 w-9 p-0"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-xs">
+                        {initials}
+                      </div>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    Account
+                  </TooltipContent>
+                </Tooltip>
+                {profileOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-border rounded-xl shadow-lg py-2 animate-fade-in z-50">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                        {initials}
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-semibold text-foreground truncate">{displayName || "User"}</p>
+                        <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                      </div>
                     </div>
                     {profileMenuItems.map((item, i) => {
                       if ('divider' in item) return <div key={i} className="my-1 border-t border-border" />;
