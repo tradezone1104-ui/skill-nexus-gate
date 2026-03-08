@@ -17,10 +17,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
 import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
-import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
