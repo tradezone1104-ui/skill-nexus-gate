@@ -31,6 +31,9 @@ import CourseList from "./pages/CourseList";
 import ReferAFriend from "./pages/ReferAFriend";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import FloatingSupport from "./components/FloatingSupport";
+import HelpCenter from "./pages/HelpCenter";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -70,8 +73,11 @@ const App = () => (
                   <Route path="/refer" element={<ReferAFriend />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/settings/profile" element={<ProfileSettings />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<Contact />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <FloatingSupport />
                 </NotificationProvider>
                 </SubscriptionProvider>
                 </PurchaseProvider>
