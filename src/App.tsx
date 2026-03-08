@@ -17,18 +17,12 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
 import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
-import { useAuth } from "@/contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
-const HomePage = () => {
-  const { user, loading } = useAuth();
-  if (loading) return <div className="min-h-screen bg-background" />;
-  return user ? <Dashboard /> : <Index />;
-};
+// Homepage now handles both guest and logged-in states internally
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,7 +33,7 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <Routes>
-              <Route path="/" element={<HomePage />} />
+              <Route path="/" element={<Index />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/course/:id" element={<CourseDetail />} />
               <Route path="/free-learning" element={<FreeLearning />} />
