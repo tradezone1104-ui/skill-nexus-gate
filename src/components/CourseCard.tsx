@@ -1,17 +1,20 @@
 import { Link } from "react-router-dom";
-import { Star, Users, Clock, ShoppingCart, Heart, CheckCircle } from "lucide-react";
+import { Star, Users, Clock, ShoppingCart, Heart, CheckCircle, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
   const { isWishlisted, toggleWishlist } = useWishlistContext();
   const { isInCart, addToCart } = useCartContext();
   const { isPurchased } = usePurchaseContext();
+  const { isSubscribed } = useSubscription();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
+  const hasAccess = isPurchased(course.id) || isSubscribed;
 
   return (
     <div className="rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 shadow-card hover:shadow-glow hover:-translate-y-1 flex flex-col">
@@ -27,6 +30,10 @@ const CourseCard = ({ course }: { course: Course }) => {
             {isPurchased(course.id) ? (
               <Badge className="bg-emerald-600 text-primary-foreground text-xs font-semibold gap-1">
                 <CheckCircle className="h-3 w-3" /> Purchased
+              </Badge>
+            ) : isSubscribed ? (
+              <Badge className="bg-secondary text-secondary-foreground text-xs font-semibold gap-1">
+                <Crown className="h-3 w-3" /> Included in Premium
               </Badge>
             ) : (
               <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
@@ -74,7 +81,7 @@ const CourseCard = ({ course }: { course: Course }) => {
             <span className="text-xs text-muted-foreground">{course.instructor}</span>
           </div>
 
-          {isPurchased(course.id) ? (
+          {hasAccess ? (
             <div className="flex items-center gap-2">
               <Link to={`/course/${course.id}`} className="flex-1">
                 <Button size="sm" className="w-full bg-emerald-600 text-primary-foreground hover:bg-emerald-700 text-xs gap-1.5">
