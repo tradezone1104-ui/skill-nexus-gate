@@ -30,10 +30,7 @@ const CVBusiness = () => {
       navigate("/login");
       return;
     }
-    toast({
-      title: "Coming Soon",
-      description: "The reseller program is launching soon. You'll be notified when it's ready!",
-    });
+    navigate("/reseller-dashboard");
   };
 
   return (

@@ -15,6 +15,7 @@ import CourseDetail from "./pages/CourseDetail";
 import FreeLearning from "./pages/FreeLearning";
 import Subscribe from "./pages/Subscribe";
 import CVBusiness from "./pages/CVBusiness";
+import ResellerDashboard from "./pages/ResellerDashboard";
 import Exchange from "./pages/Exchange";
 import MyLearning from "./pages/MyLearning";
 import Login from "./pages/Login";
@@ -52,6 +53,7 @@ const App = () => (
                   <Route path="/free-learning" element={<FreeLearning />} />
                   <Route path="/subscribe" element={<Subscribe />} />
                   <Route path="/cv-business" element={<CVBusiness />} />
+                  <Route path="/reseller-dashboard" element={<ResellerDashboard />} />
                   <Route path="/exchange" element={<Exchange />} />
                   <Route path="/my-learning" element={<MyLearning />} />
                   <Route path="/wishlist" element={<Wishlist />} />
