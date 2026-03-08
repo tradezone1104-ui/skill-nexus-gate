@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check } from "lucide-react";
+import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check, Trash2, BookOpen, DollarSign, Tag, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
+import { useNotifications } from "@/contexts/NotificationContext";
 
 const profileMenuItems = [
   { label: "Course List", to: "/course-list" },
@@ -32,11 +33,25 @@ const profileMenuItems = [
   { label: "Help and Support", to: "/support" },
 ];
 
-const notificationItems = [
-  { id: 1, title: "New course added", desc: "Options Trading Masterclass is now available", time: "2h ago" },
-  { id: 2, title: "Subscription reminder", desc: "Your premium membership renews in 3 days", time: "1d ago" },
-  { id: 3, title: "Discount offer", desc: "Get 40% off on all trading bundles this weekend", time: "2d ago" },
-];
+const notifIconMap: Record<string, React.ElementType> = {
+  bell: Bell,
+  "book-open": BookOpen,
+  "dollar-sign": DollarSign,
+  tag: Tag,
+  "refresh-cw": RefreshCw,
+};
+
+const formatTimeAgo = (dateStr: string) => {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(dateStr).toLocaleDateString();
+};
 
 const getInitials = (name: string | null | undefined): string => {
   if (!name || !name.trim()) return "U";
@@ -60,6 +75,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
   const { cartCount } = useCartContext();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification, clearAll } = useNotifications();
   const isLoggedIn = !!user;
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "";
@@ -230,7 +246,11 @@ const Navbar = () => {
                       className="text-muted-foreground hover:text-foreground h-9 w-9 relative"
                     >
                       <Bell className="h-4 w-4" />
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
+                      {unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                          {unreadCount}
+                        </span>
+                      )}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs">
@@ -239,25 +259,52 @@ const Navbar = () => {
                 </Tooltip>
                 {notifOpen && (
                   <div className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl shadow-lg animate-fade-in z-50">
-                    <div className="px-4 py-3 border-b border-border">
+                    <div className="px-4 py-3 border-b border-border flex items-center justify-between">
                       <h3 className="font-semibold text-sm text-foreground">Updates & Notifications</h3>
+                      {notifications.length > 0 && (
+                        <div className="flex items-center gap-2">
+                          {unreadCount > 0 && (
+                            <button onClick={markAllAsRead} className="text-xs text-primary hover:underline">Mark all read</button>
+                          )}
+                          <button onClick={clearAll} className="text-xs text-destructive hover:underline">Clear all</button>
+                        </div>
+                      )}
                     </div>
                     <div className="max-h-72 overflow-y-auto">
-                      {notificationItems.map((n) => (
-                        <div key={n.id} className="px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-b-0">
-                          <p className="text-sm font-medium text-foreground">{n.title}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{n.desc}</p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">{n.time}</p>
+                      {notifications.length === 0 ? (
+                        <div className="px-4 py-8 text-center">
+                          <Bell className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">No notifications yet.</p>
                         </div>
-                      ))}
+                      ) : (
+                        notifications.map((n) => {
+                          const IconComp = notifIconMap[n.icon] || Bell;
+                          const timeAgo = formatTimeAgo(n.created_at);
+                          return (
+                            <div
+                              key={n.id}
+                              onClick={() => markAsRead(n.id)}
+                              className={`px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-b-0 cursor-pointer flex gap-3 ${!n.is_read ? "bg-primary/5" : ""}`}
+                            >
+                              <div className="shrink-0 mt-0.5">
+                                <IconComp className={`h-4 w-4 ${!n.is_read ? "text-primary" : "text-muted-foreground"}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-medium ${!n.is_read ? "text-foreground" : "text-muted-foreground"}`}>{n.title}</p>
+                                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                                <p className="text-xs text-muted-foreground/70 mt-1">{timeAgo}</p>
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); clearNotification(n.id); }}
+                                className="shrink-0 text-muted-foreground hover:text-destructive transition-colors mt-0.5"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
-                    <Link
-                      to="/notifications"
-                      onClick={() => setNotifOpen(false)}
-                      className="block px-4 py-2.5 text-center text-sm text-primary hover:bg-muted transition-colors border-t border-border"
-                    >
-                      View all notifications
-                    </Link>
                   </div>
                 )}
               </div>

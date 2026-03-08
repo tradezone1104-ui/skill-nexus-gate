@@ -9,6 +9,7 @@ import { WishlistProvider } from "@/contexts/WishlistContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { PurchaseProvider } from "@/contexts/PurchaseContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import CourseDetail from "./pages/CourseDetail";
@@ -45,8 +46,8 @@ const App = () => (
               <CartProvider>
                 <PurchaseProvider>
                 <SubscriptionProvider>
+                <NotificationProvider>
                 <Routes>
-                  <Route path="/" element={<Index />} />
                   <Route path="/course-list" element={<CourseList />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/course/:id" element={<CourseDetail />} />
@@ -66,6 +67,7 @@ const App = () => (
                   <Route path="/settings/profile" element={<ProfileSettings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </NotificationProvider>
                 </SubscriptionProvider>
                 </PurchaseProvider>
               </CartProvider>
