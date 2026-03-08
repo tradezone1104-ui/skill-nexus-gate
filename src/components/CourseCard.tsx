@@ -3,10 +3,12 @@ import { Star, Users, Clock, ShoppingCart, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
+import { useCartContext } from "@/contexts/CartContext";
 import type { Course } from "@/data/courses";
 
 const CourseCard = ({ course }: { course: Course }) => {
   const { isWishlisted, toggleWishlist } = useWishlistContext();
+  const { isInCart, addToCart } = useCartContext();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
 
   return (
