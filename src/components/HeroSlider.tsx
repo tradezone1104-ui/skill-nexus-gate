@@ -64,7 +64,11 @@ const HeroSlider = () => {
       <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} transition-all duration-700`} />
       <div className="container mx-auto px-4 py-16 md:py-24 relative">
         <div className="max-w-3xl mx-auto text-center space-y-5 animate-fade-up" key={current}>
-          <p className="text-sm font-semibold text-primary uppercase tracking-widest">{slide.subtitle}</p>
+          <p className={`font-semibold text-primary uppercase ${
+            slide.title === "Free Learning"
+              ? "text-xs tracking-wider opacity-85"
+              : "text-sm tracking-widest"
+          }`}>{slide.subtitle}</p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight text-foreground">
             {slide.title}
           </h1>
