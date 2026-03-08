@@ -437,6 +437,31 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+
+    {/* Logout Confirmation Modal */}
+    <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+      <AlertDialogContent className="bg-card border-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-w-sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-foreground text-lg font-semibold">Confirm Logout</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground text-sm">
+            Are you sure you want to log out of your CourseVerse account?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-2 sm:gap-2">
+          <AlertDialogCancel className="rounded-lg border-border text-foreground hover:bg-muted">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleLogout}
+            className="rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            <LogOut className="h-4 w-4 mr-1.5" />
+            Logout
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
