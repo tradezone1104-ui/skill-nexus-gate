@@ -75,36 +75,6 @@ const Index = () => {
       <CategoryBar />
       <HeroSlider />
 
-      {/* Explore by Category */}
-      <section className="max-w-[1200px] mx-auto px-6 py-10">
-        <div className="text-center mb-8">
-          <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Explore by Category</h2>
-          <p className="text-muted-foreground mt-2">Find courses that match your learning goals</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
-          {/* All Courses card */}
-          <Link
-            to="/courses"
-            className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1"
-          >
-            <span className="text-4xl group-hover:scale-110 transition-transform duration-300"><LayoutGrid className="h-9 w-9 text-primary" /></span>
-            <span className="font-display font-semibold text-foreground">All Courses</span>
-            <span className="text-sm text-muted-foreground">{courses.length}+ Courses</span>
-          </Link>
-          {/* Category cards */}
-          {categories.map((cat) => (
-            <Link
-              key={cat.id}
-              to={`/courses?category=${cat.id}`}
-              className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1"
-            >
-              <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
-              <span className="font-display font-semibold text-foreground">{cat.name}</span>
-              <span className="text-sm text-muted-foreground">{cat.count}+ Courses</span>
-            </Link>
-          ))}
-        </div>
-      </section>
 
       {/* SECTION 1 – Continue Learning (purchased only) */}
       {user && purchasedCourses.length > 0 && (
@@ -220,6 +190,39 @@ const Index = () => {
         </CourseScrollGrid>
       </section>
 
+      {/* Explore by Category */}
+      <section className="max-w-[1200px] mx-auto px-6 py-10">
+        <div className="text-center mb-8">
+          <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Explore by Category</h2>
+          <p className="text-muted-foreground mt-2">Find courses that match your learning goals</p>
+        </div>
+        {/* All Courses – full width card */}
+        <Link
+          to="/courses"
+          className="group flex items-center gap-4 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1 mb-4 w-full"
+        >
+          <LayoutGrid className="h-9 w-9 text-primary group-hover:scale-110 transition-transform duration-300 shrink-0" />
+          <div>
+            <span className="font-display font-semibold text-foreground text-lg">All Courses</span>
+            <span className="block text-sm text-muted-foreground">{courses.length}+ Courses</span>
+          </div>
+          <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+        </Link>
+        {/* Category grid – 4 per row */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/courses?category=${cat.id}`}
+              className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1"
+            >
+              <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
+              <span className="font-display font-semibold text-foreground">{cat.name}</span>
+              <span className="text-sm text-muted-foreground">{cat.count}+ Courses</span>
+            </Link>
+          ))}
+        </div>
+      </section>
       {/* CTA - guest only */}
       {!user && (
         <section className="container mx-auto px-4 py-10">
