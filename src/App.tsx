@@ -32,6 +32,8 @@ import ReferAFriend from "./pages/ReferAFriend";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 import FloatingSupport from "./components/FloatingSupport";
+import HelpCenter from "./pages/HelpCenter";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
