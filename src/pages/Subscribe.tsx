@@ -175,7 +175,7 @@ const Subscribe = () => {
             </ul>
             <Button
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-12 rounded-[10px] mt-6 text-base"
-              onClick={() => handleSubscribe("monthly")}
+              onClick={() => handleSubscribe()}
               disabled={loading === "monthly" || isSubscribed}>
               {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Start Subscription"}
             </Button>
