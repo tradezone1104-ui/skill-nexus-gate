@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check, Trash2, BookOpen, DollarSign, Tag, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
@@ -73,6 +73,7 @@ const Navbar = () => {
   const themeRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
   const { cartCount } = useCartContext();
@@ -439,7 +440,18 @@ const Navbar = () => {
       )}
     </nav>
 
-    {/* Logout Confirmation Modal */}
+    {/* Back button on inner pages */}
+    {location.pathname !== "/" && (
+      <div className="w-full max-w-[1200px] mx-auto px-6">
+        <button
+          onClick={() => navigate(-1)}
+          className="text-sm text-foreground/60 hover:text-foreground transition-colors pt-3 pb-1"
+        >
+          ← Back
+        </button>
+      </div>
+    )}
+
     <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
       <AlertDialogContent className="bg-card border-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-w-sm">
         <AlertDialogHeader>
