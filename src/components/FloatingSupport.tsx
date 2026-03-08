@@ -37,19 +37,17 @@ const FloatingSupport = () => {
   };
 
   return (
-    <div
-      className="fixed bottom-6 right-6 z-50 flex flex-col items-end"
-      onMouseEnter={handleEnter}
-      onMouseLeave={handleLeave}
-    >
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
       {/* Menu */}
       <div
-        className={`mb-3 w-52 rounded-2xl bg-card border border-border overflow-hidden transition-all duration-300 ease-out origin-bottom-right ${
+        className={`mb-3 w-52 rounded-2xl bg-card border border-border overflow-hidden transition-all duration-300 ease-out origin-bottom-right pointer-events-auto ${
           hovered
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+            ? "opacity-100 translate-y-0 scale-100"
             : "opacity-0 translate-y-3 scale-95 pointer-events-none"
         }`}
         style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
       >
         <div className="px-4 py-3 border-b border-border">
           <p className="text-sm font-semibold text-foreground">Need Help?</p>
@@ -86,9 +84,11 @@ const FloatingSupport = () => {
 
       {/* Button */}
       <button
-        className="h-14 w-14 rounded-full bg-primary flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-105 focus:outline-none"
+        className="h-14 w-14 rounded-full bg-primary flex items-center justify-center cursor-pointer transition-transform duration-200 hover:scale-105 focus:outline-none pointer-events-auto"
         style={{ boxShadow: "0 8px 20px rgba(0,0,0,0.15)" }}
         aria-label="Contact support"
+        onMouseEnter={handleEnter}
+        onMouseLeave={handleLeave}
       >
         <MessageCircle className="h-6 w-6 text-primary-foreground" />
       </button>
