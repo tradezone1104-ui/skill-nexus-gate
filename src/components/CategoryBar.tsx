@@ -76,7 +76,7 @@ const CategoryBar = () => {
 
       {/* Overlay: arrow + subcategory bar */}
       {activeCat && (
-        <div className="absolute top-full left-0 w-full z-50" onMouseEnter={handleSubbarEnter}>
+        <div className="absolute left-0 w-full z-50" style={{ top: "calc(100% + 10px)" }} onMouseEnter={handleSubbarEnter}>
           {/* Triangle arrow */}
           <div
             className="absolute -top-[8px]"
