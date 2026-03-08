@@ -19,7 +19,7 @@ import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import CourseReviews from "@/components/CourseReviews";
 import CategoryBar from "@/components/CategoryBar";
-import { getCourseById, getCoursesByCategory } from "@/data/courses";
+import { getCourseById, getCoursesByCategory, courses } from "@/data/courses";
 import { categoryGroups } from "@/data/categoryData";
 import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
@@ -157,6 +157,7 @@ const CourseDetail = () => {
 
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
   const related = getCoursesByCategory(course.category).filter(c => c.id !== course.id).slice(0, 4);
+  const moreFromInstructor = courses.filter(c => c.instructor === course.instructor && c.id !== course.id).slice(0, 4);
   const purchased = isPurchased(course.id);
   const hasAccess = purchased || isSubscribed;
   const wishlisted = isWishlisted(course.id);
@@ -548,6 +549,16 @@ const CourseDetail = () => {
             </div>
           </div>
         </div>
+
+        {/* More from Instructor */}
+        {moreFromInstructor.length > 0 && (
+          <RevealSection className="mt-16">
+            <h2 className="font-display font-bold text-2xl text-foreground mb-6">More from {course.instructor}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto">
+              {moreFromInstructor.map(c => <CourseCard key={c.id} course={c} />)}
+            </div>
+          </RevealSection>
+        )}
 
         {/* Related */}
         {related.length > 0 && (
