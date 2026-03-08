@@ -35,6 +35,51 @@ export type Database = {
         }
         Relationships: []
       }
+      exchange_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          offer_course_author: string
+          offer_course_link: string | null
+          offer_course_name: string
+          offer_platform: string
+          offer_screenshot_url: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          want_course_name: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          offer_course_author: string
+          offer_course_link?: string | null
+          offer_course_name: string
+          offer_platform?: string
+          offer_screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          want_course_name: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          offer_course_author?: string
+          offer_course_link?: string | null
+          offer_course_name?: string
+          offer_platform?: string
+          offer_screenshot_url?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          want_course_name?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
