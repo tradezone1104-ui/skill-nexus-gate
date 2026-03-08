@@ -1,25 +1,19 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { categoryGroups } from "@/data/categoryData";
-
-const HOVER_DELAY = 120;
 
 const CategoryBar = () => {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [arrowLeft, setArrowLeft] = useState(0);
   const barRef = useRef<HTMLDivElement>(null);
-  const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const catRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const clearTimers = () => {
-    if (openTimeoutRef.current) { clearTimeout(openTimeoutRef.current); openTimeoutRef.current = null; }
-    if (closeTimeoutRef.current) { clearTimeout(closeTimeoutRef.current); closeTimeoutRef.current = null; }
-  };
-
-  const updateArrow = useCallback((catId: string) => {
+  const handleMouseEnter = (catId: string) => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    setHoveredCategory(catId);
     const el = catRefs.current[catId];
     const container = containerRef.current;
     if (el && container) {
@@ -27,28 +21,14 @@ const CategoryBar = () => {
       const containerRect = container.getBoundingClientRect();
       setArrowLeft(elRect.left - containerRect.left + elRect.width / 2);
     }
-  }, []);
-
-  const handleCategoryEnter = (catId: string) => {
-    clearTimers();
-    openTimeoutRef.current = setTimeout(() => {
-      setHoveredCategory(catId);
-      updateArrow(catId);
-    }, HOVER_DELAY);
   };
 
-  const handleCategoryLeave = () => {
-    clearTimers();
-    closeTimeoutRef.current = setTimeout(() => setHoveredCategory(null), 150);
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => setHoveredCategory(null), 150);
   };
 
   const handleSubbarEnter = () => {
-    clearTimers();
-  };
-
-  const handleSubbarLeave = () => {
-    clearTimers();
-    closeTimeoutRef.current = setTimeout(() => setHoveredCategory(null), 150);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
   const scroll = (dir: "left" | "right") => {
@@ -58,7 +38,7 @@ const CategoryBar = () => {
   const activeCat = categoryGroups.find((c) => c.id === hoveredCategory);
 
   return (
-    <div ref={containerRef} className="relative z-40">
+    <div ref={containerRef} className="relative z-40" onMouseLeave={handleMouseLeave}>
       {/* Main category bar */}
       <div className="border-b border-border bg-card">
         <div className="max-w-[1200px] mx-auto px-6 relative">
@@ -71,8 +51,7 @@ const CategoryBar = () => {
               <div
                 key={cat.id}
                 ref={(el) => { catRefs.current[cat.id] = el; }}
-                onMouseEnter={() => handleCategoryEnter(cat.id)}
-                onMouseLeave={handleCategoryLeave}
+                onMouseEnter={() => handleMouseEnter(cat.id)}
                 className="relative"
               >
                 <Link
@@ -95,53 +74,46 @@ const CategoryBar = () => {
         </div>
       </div>
 
-      {/* Subcategory overlay */}
-      <div
-        className="absolute top-full left-0 w-full z-50 overflow-hidden"
-        style={{
-          maxHeight: activeCat ? "48px" : "0",
-          opacity: activeCat ? 1 : 0,
-          transition: "max-height 0.2s ease-out, opacity 0.15s ease-out",
-          pointerEvents: activeCat ? "auto" : "none",
-        }}
-        onMouseEnter={handleSubbarEnter}
-        onMouseLeave={handleSubbarLeave}
-      >
-        {/* Triangle arrow */}
-        <div
-          className="absolute -top-[8px] z-10 transition-all duration-150"
-          style={{ left: `${arrowLeft}px`, transform: "translateX(-50%)" }}
-        >
+      {/* Overlay: arrow + subcategory bar */}
+      {activeCat && (
+        <div className="absolute top-full left-0 w-full z-50" onMouseEnter={handleSubbarEnter}>
+          {/* Triangle arrow */}
           <div
-            className="w-0 h-0"
-            style={{
-              borderLeft: "8px solid transparent",
-              borderRight: "8px solid transparent",
-              borderBottom: "8px solid hsl(222 47% 11%)",
-            }}
-          />
-        </div>
+            className="absolute -top-[8px]"
+            style={{ left: `${arrowLeft}px`, transform: "translateX(-50%)" }}
+          >
+            <div
+              className="w-0 h-0"
+              style={{
+                borderLeft: "8px solid transparent",
+                borderRight: "8px solid transparent",
+                borderBottom: "8px solid hsl(222 47% 11%)",
+              }}
+            />
+          </div>
 
-        {/* Subcategory bar */}
-        <div
-          style={{ background: "hsl(222 47% 11%)", height: "48px" }}
-        >
-          <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
-            {activeCat?.subcategories.map((sub) => (
-              <Link
-                key={sub.id}
-                to={`/courses?category=${activeCat.id}&sub=${sub.id}`}
-                className="text-sm whitespace-nowrap font-medium transition-colors duration-150 py-1"
-                style={{ color: "hsl(215 20% 65%)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(215 20% 65%)")}
-              >
-                {sub.name}
-              </Link>
-            ))}
+          {/* Subcategory bar */}
+          <div
+            className="animate-fade-in"
+            style={{ background: "hsl(222 47% 11%)", height: "48px" }}
+          >
+            <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
+              {activeCat.subcategories.map((sub) => (
+                <Link
+                  key={sub.id}
+                  to={`/courses?category=${activeCat.id}&sub=${sub.id}`}
+                  className="text-sm whitespace-nowrap font-medium transition-colors duration-150 py-1"
+                  style={{ color: "hsl(215 20% 65%)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "hsl(215 20% 65%)")}
+                >
+                  {sub.name}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
