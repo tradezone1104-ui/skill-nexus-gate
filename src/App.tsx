@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 import FloatingSupport from "./components/FloatingSupport";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
+import CvCoins from "./pages/CvCoins";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const App = () => (
                   <Route path="/settings/:section" element={<AccountSettings />} />
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/cv-coins" element={<CvCoins />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
