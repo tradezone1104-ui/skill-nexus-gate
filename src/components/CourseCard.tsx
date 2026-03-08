@@ -23,10 +23,16 @@ const CourseCard = ({ course }: { course: Course }) => {
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
             loading="lazy"
           />
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
-              {discount}% OFF
-            </Badge>
+          <div className="absolute top-3 left-3 flex gap-1.5">
+            {isPurchased(course.id) ? (
+              <Badge className="bg-emerald-600 text-primary-foreground text-xs font-semibold gap-1">
+                <CheckCircle className="h-3 w-3" /> Purchased
+              </Badge>
+            ) : (
+              <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
+                {discount}% OFF
+              </Badge>
+            )}
           </div>
           <div className="absolute top-3 right-3">
             <Badge variant="secondary" className="bg-secondary/90 text-secondary-foreground text-xs">
