@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Flame, Star as StarIcon } from "lucide-react";
+import { ArrowRight, BookOpen, TrendingUp, Users, Clock, Flame, Star as StarIcon, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import Navbar from "@/components/Navbar";
@@ -7,7 +7,7 @@ import CategoryBar from "@/components/CategoryBar";
 import HeroSlider from "@/components/HeroSlider";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
-import { courses, getFeaturedCourses, getCourseById } from "@/data/courses";
+import { courses, getFeaturedCourses, getCourseById, categories } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useMemo } from "react";
@@ -74,6 +74,37 @@ const Index = () => {
       <Navbar />
       <CategoryBar />
       <HeroSlider />
+
+      {/* Explore by Category */}
+      <section className="max-w-[1200px] mx-auto px-6 py-10">
+        <div className="text-center mb-8">
+          <h2 className="font-display font-bold text-2xl md:text-3xl text-foreground">Explore by Category</h2>
+          <p className="text-muted-foreground mt-2">Find courses that match your learning goals</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-5 gap-4 max-w-4xl mx-auto">
+          {/* All Courses card */}
+          <Link
+            to="/courses"
+            className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1"
+          >
+            <span className="text-4xl group-hover:scale-110 transition-transform duration-300"><LayoutGrid className="h-9 w-9 text-primary" /></span>
+            <span className="font-display font-semibold text-foreground">All Courses</span>
+            <span className="text-sm text-muted-foreground">{courses.length}+ Courses</span>
+          </Link>
+          {/* Category cards */}
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              to={`/courses?category=${cat.id}`}
+              className="group flex flex-col items-center gap-3 p-6 rounded-xl bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-glow hover:-translate-y-1"
+            >
+              <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
+              <span className="font-display font-semibold text-foreground">{cat.name}</span>
+              <span className="text-sm text-muted-foreground">{cat.count}+ Courses</span>
+            </Link>
+          ))}
+        </div>
+      </section>
 
       {/* SECTION 1 – Continue Learning (purchased only) */}
       {user && purchasedCourses.length > 0 && (
