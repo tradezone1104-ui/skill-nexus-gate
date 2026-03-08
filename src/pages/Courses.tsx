@@ -38,7 +38,7 @@ const Courses = () => {
   // Sync state from URL on param changes (e.g. clicking CategoryBar links)
   useEffect(() => {
     const cat = searchParams.get("category") || "all";
-    const sub = searchParams.get("sub") || "";
+    const sub = searchParams.get("subcategory") || "";
     const q = searchParams.get("q") || "";
     setCategory(cat);
     setSubcategory(sub);
