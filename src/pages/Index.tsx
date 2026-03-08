@@ -164,10 +164,10 @@ const Index = () => {
             title="Recommended For You"
             icon={<Users className="h-5 w-5 text-primary" />}
             linkTo="/courses"
-            linkText="Explore All Courses"
-          />
-          <CourseScrollGrid>
-            {recommended.map((course) => (
+          linkText="View All Courses"
+        />
+        <CourseScrollGrid>
+          {recommended.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </CourseScrollGrid>
