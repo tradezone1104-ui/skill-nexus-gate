@@ -20,7 +20,8 @@ const Cart = () => {
   const [checkingOut, setCheckingOut] = useState(false);
   const courses = Array.from(cartIds)
     .map(getCourseById)
-    .filter(Boolean);
+    .filter(Boolean)
+    .filter((c) => !isPurchased(c!.id));
 
   const totalPrice = courses.reduce((sum, c) => sum + (c?.price ?? 0), 0);
   const totalOriginal = courses.reduce((sum, c) => sum + (c?.originalPrice ?? 0), 0);
