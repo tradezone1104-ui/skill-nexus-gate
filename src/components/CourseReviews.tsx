@@ -248,7 +248,7 @@ const CourseReviews = ({ courseId }: CourseReviewsProps) => {
       ) : (
         <div className="space-y-4">
           {reviews.map((review) => {
-            const name = review.profiles?.full_name || "Anonymous";
+            const name = review.displayName || "Anonymous";
             const initials = name
               .split(" ")
               .map((n) => n[0])
