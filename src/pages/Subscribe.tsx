@@ -18,8 +18,8 @@ import {
   Star,
   ChevronDown,
   ChevronUp,
-  Shield,
-} from "lucide-react";
+  Shield } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,14 +28,14 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  TableRow } from
+"@/components/ui/table";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  AccordionTrigger } from
+"@/components/ui/accordion";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,57 +43,57 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useToast } from "@/hooks/use-toast";
 
 const categories = [
-  { name: "Trading", icon: TrendingUp },
-  { name: "Options & Futures", icon: BarChart3 },
-  { name: "Investing", icon: LineChart },
-  { name: "Technical Analysis", icon: BarChart3 },
-  { name: "Price Action / SMC", icon: TrendingUp },
-  { name: "Indicators & Trading Tools", icon: Cpu },
-  { name: "Crypto & Forex", icon: Bitcoin },
-  { name: "Algo Trading", icon: Bot },
-  { name: "AI Tools", icon: Sparkles },
-  { name: "Digital Skills", icon: BookOpen },
-];
+{ name: "Trading", icon: TrendingUp },
+{ name: "Options & Futures", icon: BarChart3 },
+{ name: "Investing", icon: LineChart },
+{ name: "Technical Analysis", icon: BarChart3 },
+{ name: "Price Action / SMC", icon: TrendingUp },
+{ name: "Indicators & Trading Tools", icon: Cpu },
+{ name: "Crypto & Forex", icon: Bitcoin },
+{ name: "Algo Trading", icon: Bot },
+{ name: "AI Tools", icon: Sparkles },
+{ name: "Digital Skills", icon: BookOpen }];
+
 
 const benefits = [
-  { icon: BookOpen, label: "2000+ Courses" },
-  { icon: MessageCircle, label: "Instant Telegram Access" },
-  { icon: RefreshCw, label: "Weekly New Course Updates" },
-  { icon: GraduationCap, label: "Beginner to Advanced Content" },
-  { icon: Zap, label: "Massive Learning Value" },
-];
+{ icon: BookOpen, label: "2000+ Courses" },
+{ icon: MessageCircle, label: "Instant Telegram Access" },
+{ icon: RefreshCw, label: "Weekly New Course Updates" },
+{ icon: GraduationCap, label: "Beginner to Advanced Content" },
+{ icon: Zap, label: "Massive Learning Value" }];
+
 
 const testimonials = [
-  { text: "This platform helped me learn trading faster.", author: "Rahul M." },
-  { text: "Best value for money. Access to everything for one price!", author: "Priya S." },
-  { text: "New courses every week keep me ahead of the market.", author: "Amit K." },
-];
+{ text: "This platform helped me learn trading faster.", author: "Rahul M." },
+{ text: "Best value for money. Access to everything for one price!", author: "Priya S." },
+{ text: "New courses every week keep me ahead of the market.", author: "Amit K." }];
+
 
 const faqs = [
-  {
-    q: "Do I get access to all courses?",
-    a: "Yes. Premium members can access all available courses on CourseVerse.",
-  },
-  {
-    q: "Will new courses be added?",
-    a: "Yes. New courses are added regularly and are automatically included in your subscription at no extra cost.",
-  },
-  {
-    q: "Can I cancel anytime?",
-    a: "Yes. Monthly subscriptions can be cancelled anytime. Yearly subscriptions are valid for the full year.",
-  },
-  {
-    q: "How do I access courses after subscribing?",
-    a: "Once subscribed, all courses will show an 'Included in Premium' label. Just click to start learning instantly.",
-  },
-];
+{
+  q: "Do I get access to all courses?",
+  a: "Yes. Premium members can access all available courses on CourseVerse."
+},
+{
+  q: "Will new courses be added?",
+  a: "Yes. New courses are added regularly and are automatically included in your subscription at no extra cost."
+},
+{
+  q: "Can I cancel anytime?",
+  a: "Yes. Monthly subscriptions can be cancelled anytime. Yearly subscriptions are valid for the full year."
+},
+{
+  q: "How do I access courses after subscribing?",
+  a: "Once subscribed, all courses will show an 'Included in Premium' label. Just click to start learning instantly."
+}];
+
 
 const comparisonRows = [
-  { feature: "Courses Access", individual: "One course", premium: "2000+ courses" },
-  { feature: "Price per course", individual: "₹499+", premium: "Included" },
-  { feature: "New course updates", individual: "Paid again", premium: "Free updates" },
-  { feature: "Total learning value", individual: "₹5,00,000+", premium: "Included" },
-];
+{ feature: "Courses Access", individual: "One course", premium: "2000+ courses" },
+{ feature: "Price per course", individual: "₹499+", premium: "Included" },
+{ feature: "New course updates", individual: "Paid again", premium: "Free updates" },
+{ feature: "Total learning value", individual: "₹5,00,000+", premium: "Included" }];
+
 
 const Subscribe = () => {
   const { user } = useAuth();
@@ -139,14 +139,14 @@ const Subscribe = () => {
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
             Unlock 2000+ Premium Courses With One Subscription
           </p>
-          <p className="text-primary font-bold text-xl md:text-2xl mb-8">
-            Total course value worth ₹5,00,000+
+          <p className="text-primary font-bold text-xl md:text-2xl mb-8">Total course value worth ₹2,00,00,000+
+
           </p>
           <Button
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow text-lg px-10 h-14 font-bold"
-            onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-          >
+            onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}>
+            
             Start Learning Now
           </Button>
         </div>
@@ -171,18 +171,18 @@ const Subscribe = () => {
               </div>
             </div>
             <ul className="space-y-3 flex-1">
-              {["Access to 2000+ courses", "New courses added regularly", "Beginner to advanced content", "Cancel anytime", "Priority support"].map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
+              {["Access to 2000+ courses", "New courses added regularly", "Beginner to advanced content", "Cancel anytime", "Priority support"].map((f) =>
+              <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   {f}
                 </li>
-              ))}
+              )}
             </ul>
             <Button
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12"
               onClick={() => handleSubscribe("monthly")}
-              disabled={loading === "monthly" || isSubscribed}
-            >
+              disabled={loading === "monthly" || isSubscribed}>
+              
               {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Get Monthly Plan"}
             </Button>
           </div>
@@ -198,21 +198,21 @@ const Subscribe = () => {
                 <span className="font-display font-extrabold text-4xl text-foreground">₹3,999</span>
                 <span className="text-muted-foreground ml-1">/year</span>
               </div>
-              <p className="text-sm text-primary font-semibold mt-1">Save ₹1,989 compared to monthly</p>
+              <p className="text-sm text-primary font-semibold mt-1">Save 33% compared to monthly</p>
             </div>
             <ul className="space-y-3 flex-1">
-              {["Everything included in monthly plan", "Save more compared to monthly", "Premium member badge", "Early access to new courses"].map((f) => (
-                <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
+              {["Everything included in monthly plan", "Save more compared to monthly", "Premium member badge", "Early access to new courses"].map((f) =>
+              <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
                   <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   {f}
                 </li>
-              ))}
+              )}
             </ul>
             <Button
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold h-12 shadow-glow"
               onClick={() => handleSubscribe("yearly")}
-              disabled={loading === "yearly" || isSubscribed}
-            >
+              disabled={loading === "yearly" || isSubscribed}>
+              
               {isSubscribed ? "Already Subscribed" : loading === "yearly" ? "Processing..." : "Get Yearly Plan"}
             </Button>
           </div>
@@ -235,13 +235,13 @@ const Subscribe = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {comparisonRows.map((row) => (
-                  <TableRow key={row.feature}>
+                {comparisonRows.map((row) =>
+                <TableRow key={row.feature}>
                     <TableCell className="font-medium text-foreground">{row.feature}</TableCell>
                     <TableCell className="text-center text-muted-foreground">{row.individual}</TableCell>
                     <TableCell className="text-center font-semibold text-primary">{row.premium}</TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
@@ -257,15 +257,15 @@ const Subscribe = () => {
           Explore our diverse course library across these categories
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 max-w-4xl mx-auto">
-          {categories.map((cat) => (
-            <div
-              key={cat.name}
-              className="flex flex-col items-center gap-3 p-5 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-glow transition-all text-center"
-            >
+          {categories.map((cat) =>
+          <div
+            key={cat.name}
+            className="flex flex-col items-center gap-3 p-5 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-glow transition-all text-center">
+            
               <cat.icon className="h-7 w-7 text-primary" />
               <span className="text-sm font-semibold text-foreground">{cat.name}</span>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
@@ -276,14 +276,14 @@ const Subscribe = () => {
             Premium Benefits
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 max-w-4xl mx-auto">
-            {benefits.map((b) => (
-              <div key={b.label} className="flex flex-col items-center gap-3 text-center">
+            {benefits.map((b) =>
+            <div key={b.label} className="flex flex-col items-center gap-3 text-center">
                 <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
                   <b.icon className="h-7 w-7 text-primary" />
                 </div>
                 <span className="text-sm font-semibold text-foreground">{b.label}</span>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -293,21 +293,21 @@ const Subscribe = () => {
         <div className="inline-flex items-center gap-2 text-primary font-bold text-lg mb-8">
           <Shield className="h-5 w-5" /> Trusted by Learners
         </div>
-        <h2 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-4">
-          3200+ Traders Already Joined CourseVerse Premium
+        <h2 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-4">1000+ Traders Already Joined CourseVerse Premium
+
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-12">
-          {testimonials.map((t, i) => (
-            <div key={i} className="bg-card rounded-2xl border border-border p-6 text-left space-y-4">
+          {testimonials.map((t, i) =>
+          <div key={i} className="bg-card rounded-2xl border border-border p-6 text-left space-y-4">
               <div className="flex gap-0.5">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-warning text-warning" />
-                ))}
+                {[...Array(5)].map((_, j) =>
+              <Star key={j} className="h-4 w-4 fill-warning text-warning" />
+              )}
               </div>
               <p className="text-sm text-foreground italic">"{t.text}"</p>
               <p className="text-xs font-semibold text-muted-foreground">— {t.author}</p>
             </div>
-          ))}
+          )}
         </div>
       </section>
 
@@ -318,8 +318,8 @@ const Subscribe = () => {
             Frequently Asked Questions
           </h2>
           <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-xl border border-border px-5">
+            {faqs.map((faq, i) =>
+            <AccordionItem key={i} value={`faq-${i}`} className="bg-card rounded-xl border border-border px-5">
                 <AccordionTrigger className="text-sm font-semibold text-foreground hover:no-underline">
                   {faq.q}
                 </AccordionTrigger>
@@ -327,7 +327,7 @@ const Subscribe = () => {
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>
-            ))}
+            )}
           </Accordion>
         </div>
       </section>
@@ -345,16 +345,16 @@ const Subscribe = () => {
               variant="outline"
               className="border-primary text-primary hover:bg-primary/10 font-bold h-14 px-8 text-base"
               onClick={() => handleSubscribe("monthly")}
-              disabled={!!loading || isSubscribed}
-            >
+              disabled={!!loading || isSubscribed}>
+              
               Get Monthly Plan — ₹499
             </Button>
             <Button
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-14 px-8 text-base"
               onClick={() => handleSubscribe("yearly")}
-              disabled={!!loading || isSubscribed}
-            >
+              disabled={!!loading || isSubscribed}>
+              
               Get Yearly Plan — ₹3,999
             </Button>
           </div>
@@ -362,8 +362,8 @@ const Subscribe = () => {
       </section>
 
       <Footer />
-    </div>
-  );
+    </div>);
+
 };
 
 export default Subscribe;
