@@ -335,7 +335,7 @@ const Subscribe = () => {
               size="lg"
               variant="outline"
               className="border-primary text-primary hover:bg-primary/10 font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe("monthly")}
+              onClick={() => handleSubscribe()}
               disabled={!!loading || isSubscribed}>
               
               Get Monthly Plan — ₹499
