@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 const Cart = () => {
   const { cartIds, loading, removeFromCart } = useCartContext();
+  const { isPurchased, addPurchasedIds } = usePurchaseContext();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [checkingOut, setCheckingOut] = useState(false);
