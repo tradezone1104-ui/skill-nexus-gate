@@ -1,15 +1,30 @@
-import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink } from "lucide-react";
+import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+
+const tiers = [
+  { name: "Starter", minSales: 1, maxSales: 5, rate: 15 },
+  { name: "Growing Seller", minSales: 6, maxSales: 10, rate: 20 },
+  { name: "Pro Seller", minSales: 11, maxSales: Infinity, rate: 30 },
+];
+
+function getTier(sales: number) {
+  if (sales >= 11) return { ...tiers[2], next: null, salesToNext: 0 };
+  if (sales >= 6) return { ...tiers[1], next: tiers[2], salesToNext: 11 - sales };
+  if (sales >= 1) return { ...tiers[0], next: tiers[1], salesToNext: 6 - sales };
+  return { name: "None", rate: 0, minSales: 0, maxSales: 0, next: tiers[0], salesToNext: 1 };
+}
 
 const stats = [
   { label: "Total Sales", value: "25", icon: TrendingUp, color: "text-primary" },
