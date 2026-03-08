@@ -468,7 +468,7 @@ const CourseDetail = () => {
                         >
                           Start Subscription
                         </Button>
-                        <p className="text-xs text-muted-foreground">₹499/month or ₹3,999/year</p>
+                        <p className="text-xs text-muted-foreground">Starting at ₹333/month</p>
                         <p className="text-[11px] text-muted-foreground/70">Cancel anytime</p>
                       </div>
 
@@ -527,7 +527,7 @@ const CourseDetail = () => {
 
                         {/* Guarantee texts */}
                         <div className="text-center space-y-0.5">
-                          <p className="text-[11px] text-muted-foreground">30-Day Money-Back Guarantee</p>
+                          <p className="text-[11px] text-muted-foreground">7-day refund only if any issue found</p>
                           <p className="text-[11px] text-muted-foreground">Full Lifetime Access</p>
                         </div>
                       </div>
