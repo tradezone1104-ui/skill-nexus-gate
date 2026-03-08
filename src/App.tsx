@@ -43,6 +43,7 @@ const App = () => (
             <WishlistProvider>
               <CartProvider>
                 <PurchaseProvider>
+                <SubscriptionProvider>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/course-list" element={<CourseList />} />
