@@ -465,7 +465,7 @@ const CourseDetail = () => {
                         <Button
                           size="lg"
                           className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-                          onClick={() => navigate("/subscribe")}
+                          onClick={() => navigate("/subscription-checkout")}
                         >
                           Start Subscription
                         </Button>

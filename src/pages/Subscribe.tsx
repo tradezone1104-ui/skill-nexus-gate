@@ -102,7 +102,7 @@ const Subscribe = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<"monthly" | "yearly" | null>(null);
 
-  const handleSubscribe = async (plan: "monthly" | "yearly") => {
+  const handleSubscribe = async () => {
     if (!user) {
       navigate("/login");
       return;
@@ -111,10 +111,7 @@ const Subscribe = () => {
       toast({ title: "Already subscribed", description: "You already have an active premium subscription." });
       return;
     }
-    toast({
-      title: "Payment Coming Soon",
-      description: `Payment integration is not yet available. The ${plan} plan will be activated after payment is set up.`
-    });
+    navigate("/subscription-checkout");
   };
 
   return (
@@ -178,7 +175,7 @@ const Subscribe = () => {
             </ul>
             <Button
               className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-12 rounded-[10px] mt-6 text-base"
-              onClick={() => handleSubscribe("monthly")}
+              onClick={() => handleSubscribe()}
               disabled={loading === "monthly" || isSubscribed}>
               {isSubscribed ? "Already Subscribed" : loading === "monthly" ? "Processing..." : "Start Subscription"}
             </Button>
@@ -338,7 +335,7 @@ const Subscribe = () => {
               size="lg"
               variant="outline"
               className="border-primary text-primary hover:bg-primary/10 font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe("monthly")}
+              onClick={() => handleSubscribe()}
               disabled={!!loading || isSubscribed}>
               
               Get Monthly Plan — ₹499
@@ -346,7 +343,7 @@ const Subscribe = () => {
             <Button
               size="lg"
               className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-14 px-8 text-base"
-              onClick={() => handleSubscribe("yearly")}
+              onClick={() => handleSubscribe()}
               disabled={!!loading || isSubscribed}>
               
               Get Yearly Plan — ₹3,999

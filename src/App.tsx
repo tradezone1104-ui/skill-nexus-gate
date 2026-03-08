@@ -37,6 +37,8 @@ import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
 import CvCoins from "./pages/CvCoins";
 import Checkout from "./pages/Checkout";
+import SubscriptionCheckout from "./pages/SubscriptionCheckout";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +84,8 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cv-coins" element={<CvCoins />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
+                  <Route path="/payment-success" element={<PaymentSuccess />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
