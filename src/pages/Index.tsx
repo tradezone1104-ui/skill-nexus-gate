@@ -18,13 +18,13 @@ const stats = [
 
 const Index = () => {
   const { user, profile } = useAuth();
+  const { wishlistIds } = useWishlistContext();
   const featured = getFeaturedCourses();
   const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Learner";
 
-  // Logged-in user sections
   const continueLearning = courses.slice(0, 4);
   const recommended = courses.slice(8, 16);
-  const wishlist = courses.slice(24, 28);
+  const wishlistCourses = Array.from(wishlistIds).map(getCourseById).filter(Boolean).slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background">
