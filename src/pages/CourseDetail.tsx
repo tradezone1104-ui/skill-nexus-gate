@@ -129,8 +129,6 @@ const CourseDetail = () => {
   // Fake countdown
   const daysLeft = (parseInt(course.id.replace("course-", ""), 10) % 5) + 1;
 
-  // Generate sections
-  const sections = useMemo(() => generateSections(course), [course.id]);
   const totalLectures = sections.reduce((s, sec) => s + sec.lectures.length, 0);
 
   const learningPoints = [
