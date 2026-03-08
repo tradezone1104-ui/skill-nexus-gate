@@ -72,7 +72,8 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/refer" element={<ReferAFriend />} />
                   <Route path="/notifications" element={<Notifications />} />
-                  <Route path="/settings/profile" element={<ProfileSettings />} />
+                  <Route path="/settings" element={<AccountSettings />} />
+                  <Route path="/settings/:section" element={<AccountSettings />} />
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="*" element={<NotFound />} />
