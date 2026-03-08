@@ -25,7 +25,7 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 // Generate deterministic fake course sections from course data
 function generateSections(course: ReturnType<typeof getCourseById>) {
