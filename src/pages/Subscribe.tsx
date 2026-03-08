@@ -89,10 +89,10 @@ const faqs = [
 
 
 const comparisonRows = [
-{ feature: "Courses Access", individual: "One course", premium: "2000+ courses" },
+{ feature: "Courses Access", individual: "Single course", premium: "2000+ courses" },
 { feature: "Price per course", individual: "₹499+", premium: "Included" },
-{ feature: "New course updates", individual: "Paid again", premium: "Free updates" },
-{ feature: "Total learning value", individual: "₹5,00,000+", premium: "Included" }];
+{ feature: "New course updates", individual: "Pay again", premium: "Free updates" },
+{ feature: "Total learning value", individual: "₹2,00,00,000+", premium: "Included" }];
 
 
 const Subscribe = () => {
