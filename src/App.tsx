@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 import FloatingSupport from "./components/FloatingSupport";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
+import CvCoins from "./pages/CvCoins";
 
 const queryClient = new QueryClient();
 
