@@ -24,12 +24,12 @@ const profileMenuItems = [
   { label: "Notifications", to: "/notifications" },
   { label: "Account Settings", to: "/settings" },
   { label: "Payment Methods", to: "/settings/payments" },
-  { label: "Subscription", to: "/subscribe" },
+  { label: "Subscription", to: "/settings/subscription" },
   { label: "CV Coins", to: "/cv-coins" },
   { label: "Purchase History", to: "/purchase-history" },
   { divider: true },
   { label: "Edit Profile", to: "/settings/profile" },
-  { label: "Help and Support", to: "/support" },
+  { label: "Help and Support", to: "/help" },
 ];
 
 const notifIconMap: Record<string, React.ElementType> = {
