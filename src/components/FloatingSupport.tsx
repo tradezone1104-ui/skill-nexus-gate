@@ -40,12 +40,15 @@ const FloatingSupport = () => {
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
       {/* Menu */}
       <div
-        className={`mb-3 w-52 rounded-2xl bg-card border border-border overflow-hidden transition-all duration-300 ease-out origin-bottom-right pointer-events-auto ${
+        className={`mb-3 w-52 rounded-2xl bg-card border border-border overflow-hidden transition-all duration-300 ease-out origin-bottom-right ${
           hovered
             ? "opacity-100 translate-y-0 scale-100"
-            : "opacity-0 translate-y-3 scale-95 pointer-events-none"
+            : "opacity-0 translate-y-3 scale-95"
         }`}
-        style={{ boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+        style={{
+          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
+          pointerEvents: hovered ? "auto" : "none",
+        }}
         onMouseEnter={handleEnter}
         onMouseLeave={handleLeave}
       >
