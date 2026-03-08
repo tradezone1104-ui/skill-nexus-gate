@@ -205,8 +205,13 @@ const Navbar = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Link to="/cart">
-                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9">
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground h-9 w-9 relative">
                       <ShoppingCart className="h-4 w-4" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+                          {cartCount}
+                        </span>
+                      )}
                     </Button>
                   </Link>
                 </TooltipTrigger>
