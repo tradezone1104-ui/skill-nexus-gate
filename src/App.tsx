@@ -29,6 +29,7 @@ import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
 import CourseList from "./pages/CourseList";
 import ReferAFriend from "./pages/ReferAFriend";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/refer" element={<ReferAFriend />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/settings/profile" element={<ProfileSettings />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
