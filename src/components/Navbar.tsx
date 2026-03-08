@@ -139,6 +139,16 @@ const Navbar = () => {
                   My Learning
                 </Button>
               </Link>
+              <Link to="/cv-business">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  CV Business
+                </Button>
+              </Link>
+              <Link to="/exchange">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground text-sm font-medium">
+                  Exchange Courses
+                </Button>
+              </Link>
             </div>
           )}
 
