@@ -76,10 +76,27 @@ const CourseReviews = ({ courseId }: CourseReviewsProps) => {
   const fetchReviews = async () => {
     const { data } = await supabase
       .from("reviews")
-      .select("*, profiles(full_name, avatar_url)")
+      .select("*")
       .eq("course_id", courseId)
       .order("created_at", { ascending: false });
-    setReviews((data as Review[]) || []);
+    
+    const reviewData = (data || []) as Review[];
+    
+    // Fetch display names for reviewers
+    if (reviewData.length > 0) {
+      const userIds = [...new Set(reviewData.map((r) => r.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", userIds);
+      
+      const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.full_name]));
+      reviewData.forEach((r) => {
+        r.displayName = nameMap.get(r.user_id) || "Anonymous";
+      });
+    }
+    
+    setReviews(reviewData);
     setLoading(false);
   };
 
