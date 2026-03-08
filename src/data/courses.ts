@@ -33,8 +33,8 @@ const categoryIconMap: Record<string, string> = {
   options: "📋",
   investing: "💰",
   "technical-analysis": "📊",
-  "price-action": "🎯",
-  indicators: "🔧",
+  "price-action-smc": "🎯",
+  "indicators-tools": "🔧",
   "crypto-forex": "🪙",
   "algo-ai": "🤖",
 };
