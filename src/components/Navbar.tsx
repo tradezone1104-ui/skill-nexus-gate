@@ -22,7 +22,6 @@ const profileMenuItems = [
   { divider: true },
   { section: "Account" },
   { label: "Notifications", to: "/notifications" },
-  { label: "Messages", to: "/messages" },
   { label: "Account Settings", to: "/settings" },
   { label: "Payment Methods", to: "/settings/payments" },
   { label: "Subscription", to: "/subscribe" },
