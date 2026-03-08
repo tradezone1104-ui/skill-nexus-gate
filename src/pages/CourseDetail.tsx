@@ -37,6 +37,7 @@ const CourseDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <CategoryBar />
 
       <div className="container mx-auto px-4 py-8">
         <Link to="/courses" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-6">
