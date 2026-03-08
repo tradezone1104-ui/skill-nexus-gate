@@ -121,7 +121,7 @@ const Courses = () => {
   };
 
   const handleSubcategoryChange = (val: string) => {
-    updateParams({ sub: val === "all" ? null : val });
+    updateParams({ subcategory: val === "all" ? null : val });
   };
 
   return (
