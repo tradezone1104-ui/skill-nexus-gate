@@ -468,7 +468,7 @@ const CourseDetail = () => {
                         >
                           Start Subscription
                         </Button>
-                        <p className="text-xs text-muted-foreground">₹499/month or ₹3,999/year</p>
+                        <p className="text-xs text-muted-foreground">Starting at ₹333/month</p>
                         <p className="text-[11px] text-muted-foreground/70">Cancel anytime</p>
                       </div>
 
