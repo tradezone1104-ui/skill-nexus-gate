@@ -111,15 +111,10 @@ const Subscribe = () => {
       toast({ title: "Already subscribed", description: "You already have an active premium subscription." });
       return;
     }
-    setLoading(plan);
-    try {
-      await subscribe(plan);
-      toast({ title: "🎉 Welcome to Premium!", description: `Your ${plan} subscription is now active.` });
-    } catch {
-      toast({ title: "Error", description: "Something went wrong. Please try again.", variant: "destructive" });
-    } finally {
-      setLoading(null);
-    }
+    toast({
+      title: "Payment Coming Soon",
+      description: `Payment integration is not yet available. The ${plan} plan will be activated after payment is set up.`,
+    });
   };
 
   return (
