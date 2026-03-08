@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search, SlidersHorizontal, X, Star, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,13 @@ import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import { searchCourses, categories, courses as allCourses } from "@/data/courses";
+import { categoryGroups } from "@/data/categoryData";
 
 const ITEMS_PER_PAGE = 20;
 
 const LEVELS = ["Beginner", "Intermediate", "Advanced"] as const;
 const RATING_OPTIONS = [4.5, 4.0, 3.5, 3.0] as const;
 
-// Compute global price range once
 const allPrices = allCourses.map((c) => c.price);
 const GLOBAL_MIN = Math.min(...allPrices);
 const GLOBAL_MAX = Math.max(...allPrices);
@@ -27,11 +27,24 @@ const Courses = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const initialCategory = searchParams.get("category") || "all";
+  const initialSub = searchParams.get("sub") || "";
 
   const [query, setQuery] = useState(initialQuery);
   const [category, setCategory] = useState(initialCategory);
+  const [subcategory, setSubcategory] = useState(initialSub);
   const [sortBy, setSortBy] = useState("popular");
   const [page, setPage] = useState(1);
+
+  // Sync state from URL on param changes (e.g. clicking CategoryBar links)
+  useEffect(() => {
+    const cat = searchParams.get("category") || "all";
+    const sub = searchParams.get("sub") || "";
+    const q = searchParams.get("q") || "";
+    setCategory(cat);
+    setSubcategory(sub);
+    setQuery(q);
+    setPage(1);
+  }, [searchParams]);
 
   // Advanced filters
   const [showFilters, setShowFilters] = useState(false);
@@ -61,41 +74,54 @@ const Courses = () => {
     setPage(1);
   };
 
-  const filtered = useMemo(() => {
-    let results = searchCourses(query, category);
+  // Resolve display names
+  const activeCatGroup = categoryGroups.find((c) => c.id === category);
+  const activeSubObj = activeCatGroup?.subcategories.find((s) => s.id === subcategory);
+  const categoryLabel = activeCatGroup?.name || "All";
+  const subcategoryLabel = activeSubObj?.name || "";
 
-    // Price filter
+  // Available subcategories for the selected category
+  const availableSubs = activeCatGroup?.subcategories || [];
+
+  const filtered = useMemo(() => {
+    let results = searchCourses(query, category, subcategory || undefined);
+
     results = results.filter((c) => c.price >= priceRange[0] && c.price <= priceRange[1]);
 
-    // Level filter
     if (selectedLevels.size > 0) {
       results = results.filter((c) => selectedLevels.has(c.level));
     }
 
-    // Rating filter
     if (minRating > 0) {
       results = results.filter((c) => c.rating >= minRating);
     }
 
-    // Sort
     if (sortBy === "price-low") results.sort((a, b) => a.price - b.price);
     else if (sortBy === "price-high") results.sort((a, b) => b.price - a.price);
     else if (sortBy === "rating") results.sort((a, b) => b.rating - a.rating);
     else results.sort((a, b) => b.students - a.students);
 
     return results;
-  }, [query, category, sortBy, priceRange, selectedLevels, minRating]);
+  }, [query, category, subcategory, sortBy, priceRange, selectedLevels, minRating]);
 
   const paginated = filtered.slice(0, page * ITEMS_PER_PAGE);
   const hasMore = paginated.length < filtered.length;
 
-  const handleCategoryChange = (val: string) => {
-    setCategory(val);
-    setPage(1);
+  const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);
-    if (val === "all") params.delete("category");
-    else params.set("category", val);
+    Object.entries(updates).forEach(([key, val]) => {
+      if (val === null || val === "" || val === "all") params.delete(key);
+      else params.set(key, val);
+    });
     setSearchParams(params);
+  };
+
+  const handleCategoryChange = (val: string) => {
+    updateParams({ category: val, sub: null }); // reset sub when category changes
+  };
+
+  const handleSubcategoryChange = (val: string) => {
+    updateParams({ sub: val === "all" ? null : val });
   };
 
   return (
@@ -105,9 +131,12 @@ const Courses = () => {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-2">
-            {category !== "all" ? categories.find((c) => c.id === category)?.name || "All" : "All"} Courses
+          <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-1">
+            {category !== "all" ? categoryLabel : "All"} Courses
           </h1>
+          {subcategoryLabel && (
+            <p className="text-lg text-primary font-medium mb-1">{subcategoryLabel}</p>
+          )}
           <p className="text-muted-foreground">{filtered.length.toLocaleString()} courses available</p>
         </div>
 
@@ -126,7 +155,7 @@ const Courses = () => {
             />
           </div>
           <Select value={category} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full sm:w-44 bg-card border-border">
+            <SelectTrigger className="w-full sm:w-48 bg-card border-border">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -138,6 +167,21 @@ const Courses = () => {
               ))}
             </SelectContent>
           </Select>
+          {availableSubs.length > 0 && (
+            <Select value={subcategory || "all"} onValueChange={handleSubcategoryChange}>
+              <SelectTrigger className="w-full sm:w-52 bg-card border-border">
+                <SelectValue placeholder="Subcategory" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Subcategories</SelectItem>
+                {availableSubs.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select
             value={sortBy}
             onValueChange={(v) => {
@@ -264,12 +308,7 @@ const Courses = () => {
             {(priceRange[0] > GLOBAL_MIN || priceRange[1] < GLOBAL_MAX) && (
               <Badge variant="secondary" className="gap-1.5 text-xs py-1 px-2.5">
                 ₹{priceRange[0]} – ₹{priceRange[1]}
-                <button
-                  onClick={() => {
-                    setPriceRange([GLOBAL_MIN, GLOBAL_MAX]);
-                    setPage(1);
-                  }}
-                >
+                <button onClick={() => { setPriceRange([GLOBAL_MIN, GLOBAL_MAX]); setPage(1); }}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
@@ -285,12 +324,7 @@ const Courses = () => {
             {minRating > 0 && (
               <Badge variant="secondary" className="gap-1.5 text-xs py-1 px-2.5">
                 {minRating}+ ★
-                <button
-                  onClick={() => {
-                    setMinRating(0);
-                    setPage(1);
-                  }}
-                >
+                <button onClick={() => { setMinRating(0); setPage(1); }}>
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
