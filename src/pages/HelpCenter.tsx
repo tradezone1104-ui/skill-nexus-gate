@@ -10,45 +10,53 @@ const faqCategories = [
     icon: BookOpen,
     title: "Courses & Learning",
     faqs: [
-      { q: "How do I access my purchased courses?", a: "Go to 'My Learning' from the profile menu to see all your purchased courses. Click on any course to start learning." },
-      { q: "Can I download courses for offline viewing?", a: "Yes, after purchasing a course you'll receive a Telegram link where you can access downloadable content." },
-      { q: "How long do I have access to a course?", a: "You have lifetime access to all purchased courses. Once bought, they're yours forever." },
+      { q: "How do I access my purchased courses?", a: "After purchasing a course, you can access it from the \"My Learning\" section in your account. All purchased courses remain available in your dashboard so you can continue learning anytime." },
+      { q: "Can I download courses for offline viewing?", a: "Offline download is available only for individually purchased courses. Courses accessed through Premium subscription cannot be downloaded for offline use." },
+      { q: "How long do I have access to a course?", a: "If you purchase a course individually, you get lifetime access to that course. If you access courses through Premium subscription, access remains active only while your subscription is active." },
+      { q: "Do I get access to all courses with Premium?", a: "Yes. Premium members can access all courses included in the subscription library while the subscription is active. However, premium courses cannot be downloaded for offline use." },
     ],
   },
   {
     icon: CreditCard,
     title: "Payments & Billing",
     faqs: [
-      { q: "What payment methods are accepted?", a: "We accept UPI, credit/debit cards, net banking, and wallet payments through our secure payment gateway." },
-      { q: "How do I get a refund?", a: "Contact our support team within 7 days of purchase if you're unsatisfied. We'll review your request and process eligible refunds." },
-      { q: "Where can I see my purchase history?", a: "Go to 'Purchase History' from your profile menu to view all your past transactions." },
+      { q: "What payment methods are accepted?", a: "We accept secure online payments through UPI, debit cards, credit cards, and supported digital payment methods." },
+      { q: "How do I get a refund?", a: "Refunds are only issued if there is a genuine issue with the course such as: missing content, incorrect course information, or technical access problems. Refund requests are reviewed by our support team before approval." },
+      { q: "Where can I see my purchase history?", a: "You can view all your purchases in the \"Purchase History\" section inside your profile dashboard." },
     ],
   },
   {
     icon: Users,
     title: "Referrals & CV Coins",
     faqs: [
-      { q: "How does the referral program work?", a: "Share your unique referral link. When friends purchase courses using your link, you earn 20% as CV Coins." },
-      { q: "What can I do with CV Coins?", a: "CV Coins can be used for course discounts, unlocking special content, or redeeming exclusive rewards." },
-      { q: "How do I become a reseller?", a: "Apply through the 'CV Business' page. Once approved, you'll get access to the reseller dashboard with higher commission rates." },
+      { q: "How does the referral program work?", a: "You can invite friends using your personal referral link. When someone joins and makes a purchase through your referral link, you earn CV Coins as a reward." },
+      { q: "What can I do with CV Coins?", a: "CV Coins can be used to get discounts on courses, unlock special offers, or access selected premium content." },
+      { q: "How do I join the CV Business reseller program?", a: "You can apply for the CV Business reseller program from the CV Business section. Once approved, you can start promoting courses and earn commissions on successful sales." },
     ],
   },
   {
     icon: Settings,
     title: "Account & Settings",
     faqs: [
-      { q: "How do I change my password?", a: "Go to Account Settings from your profile menu, then click on 'Change Password' to update your credentials." },
-      { q: "How do I update my profile picture?", a: "Navigate to 'Edit Profile' and click on your avatar to upload a new profile picture." },
-      { q: "Can I change my email address?", a: "For security reasons, email changes require verification. Contact support to request an email update." },
+      { q: "How do I change my password?", a: "Go to Account Settings → Security → Change Password and update your password securely." },
+      { q: "How do I update my profile picture?", a: "You can update your profile avatar from the Edit Profile section in your account settings." },
+      { q: "Can I change my email address?", a: "Yes. You can update your email from the Account Settings page after verifying your identity." },
+    ],
+  },
+  {
+    icon: HelpCircle,
+    title: "Platform Features",
+    faqs: [
+      { q: "What is the Exchange Courses feature?", a: "If you own a rare or valuable course that is not available on CourseVerse, you can request to exchange it for another course. Our team will review the request and approve or reject it." },
+      { q: "Can I sell a course I own to CourseVerse?", a: "Yes. If you own a rare course, you can submit a request through the Sell Your Course option. Our team will review the course and may offer a purchase price." },
+      { q: "Where are the courses delivered?", a: "After purchase or approval, course access instructions will be provided through the platform dashboard or our official communication channel." },
     ],
   },
   {
     icon: ShieldCheck,
     title: "Security & Privacy",
     faqs: [
-      { q: "Is my payment information secure?", a: "Yes, we use industry-standard encryption and never store your complete card details on our servers." },
-      { q: "How do I enable two-factor authentication?", a: "Two-factor authentication can be enabled from Account Settings under the Security section." },
-      { q: "Who can see my profile?", a: "Your profile is private by default. Only your reviews and public activity are visible to others." },
+      { q: "Is my payment information secure?", a: "Yes. All payments are processed through secure payment gateways. CourseVerse does not store sensitive card details on its servers." },
     ],
   },
 ];
