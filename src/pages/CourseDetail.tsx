@@ -99,6 +99,8 @@ const CourseDetail = () => {
   const [expandAll, setExpandAll] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
 
+  const sections = useMemo(() => generateSections(course), [course?.id]);
+
   if (!course) {
     return (
       <div className="min-h-screen bg-background">

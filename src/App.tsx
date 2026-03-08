@@ -36,6 +36,7 @@ import FloatingSupport from "./components/FloatingSupport";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
 import CvCoins from "./pages/CvCoins";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
