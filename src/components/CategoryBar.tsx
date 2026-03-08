@@ -97,7 +97,7 @@ const CategoryBar = () => {
             className="animate-fade-in"
             style={{ background: "hsl(222 47% 11%)", height: "48px" }}
           >
-            <div className="max-w-[1200px] mx-auto px-4 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
+            <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
               {activeCat.subcategories.map((sub) => (
                 <Link
                   key={sub.id}
