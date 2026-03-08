@@ -23,7 +23,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import ProfileSettings from "./pages/ProfileSettings";
+import AccountSettings from "./pages/AccountSettings";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
