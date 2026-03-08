@@ -117,7 +117,7 @@ const Courses = () => {
   };
 
   const handleCategoryChange = (val: string) => {
-    updateParams({ category: val, sub: null }); // reset sub when category changes
+    updateParams({ category: val, subcategory: null });
   };
 
   const handleSubcategoryChange = (val: string) => {
