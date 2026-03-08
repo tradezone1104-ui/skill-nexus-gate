@@ -1,4 +1,4 @@
-import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink, Zap } from "lucide-react";
+import { Copy, DollarSign, TrendingUp, Clock, Wallet, Trophy, ExternalLink, Zap, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useEffect, useState, useMemo } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const tiers = [
   { name: "Starter", minSales: 1, maxSales: 5, rate: 15 },
@@ -50,18 +51,32 @@ const leaderboard = [
 ];
 
 const ResellerDashboard = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [withdrawMethod, setWithdrawMethod] = useState("upi");
-  const monthlySales = 7; // mock — would come from DB
+  const [approved, setApproved] = useState<boolean | null>(null);
+  const monthlySales = 7;
   const currentTier = useMemo(() => getTier(monthlySales), [monthlySales]);
-  const tierProgress = currentTier.next
-    ? ((monthlySales - (currentTier.minSales || 0)) / ((currentTier.next?.minSales || 1) - (currentTier.minSales || 0))) * 100
-    : 100;
 
   useEffect(() => {
-    if (!loading && !user) navigate("/login");
-  }, [user, loading, navigate]);
+    if (!authLoading && !user) { navigate("/login"); return; }
+    if (!user) return;
+
+    const checkApproval = async () => {
+      const { data } = await supabase
+        .from("reseller_applications")
+        .select("status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (!data || data.status !== "approved") {
+        setApproved(false);
+      } else {
+        setApproved(true);
+      }
+    };
+    checkApproval();
+  }, [user, authLoading, navigate]);
 
   const referralLink = `courseverse.com/?ref=${user?.user_metadata?.full_name?.toLowerCase().replace(/\s+/g, "") || user?.id?.slice(0, 8) || "user"}`;
 
@@ -74,7 +89,26 @@ const ResellerDashboard = () => {
     toast({ title: "Withdrawal Coming Soon", description: "Payouts will be enabled once payment integration is live." });
   };
 
-  if (loading) return null;
+  if (authLoading || approved === null) return null;
+
+  // Not approved — redirect to CV Business
+  if (!approved) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <CategoryBar />
+        <div className="container mx-auto px-4 py-20 text-center max-w-lg">
+          <ShieldAlert className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h1 className="font-display font-bold text-2xl text-foreground mb-2">Access Restricted</h1>
+          <p className="text-muted-foreground mb-6">You need an approved reseller application to access the dashboard.</p>
+          <Button onClick={() => navigate("/cv-business")} className="gap-2 rounded-xl">
+            Apply to Become a Reseller
+          </Button>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,7 +116,6 @@ const ResellerDashboard = () => {
       <CategoryBar />
 
       <div className="container mx-auto px-4 py-10 max-w-6xl space-y-10">
-        {/* Header */}
         <div>
           <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground tracking-tight">Reseller Dashboard</h1>
           <p className="text-muted-foreground mt-1">Track your sales and earnings.</p>
@@ -127,23 +160,15 @@ const ResellerDashboard = () => {
                 Sales This Month: <span className="font-bold text-foreground">{monthlySales}</span>
               </div>
             </div>
-
-            {/* Tier progress bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>15%</span>
-                <span>20%</span>
-                <span>30%</span>
+                <span>15%</span><span>20%</span><span>30%</span>
               </div>
               <Progress value={Math.min((monthlySales / 11) * 100, 100)} className="h-2.5" />
               <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground">
-                  {monthlySales} / {currentTier.next ? currentTier.next.minSales : "∞"} sales
-                </span>
+                <span className="text-muted-foreground">{monthlySales} / {currentTier.next ? currentTier.next.minSales : "∞"} sales</span>
                 {currentTier.next ? (
-                  <span className="text-primary font-medium">
-                    {currentTier.salesToNext} more sale{currentTier.salesToNext !== 1 ? "s" : ""} to unlock {currentTier.next.rate}%
-                  </span>
+                  <span className="text-primary font-medium">{currentTier.salesToNext} more sale{currentTier.salesToNext !== 1 ? "s" : ""} to unlock {currentTier.next.rate}%</span>
                 ) : (
                   <span className="text-primary font-medium">Max tier reached 🎉</span>
                 )}
@@ -152,7 +177,7 @@ const ResellerDashboard = () => {
           </CardContent>
         </Card>
 
-
+        {/* Referral Link */}
         <Card className="border-border">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground">Your Referral Link</CardTitle>
@@ -170,9 +195,8 @@ const ResellerDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Sales History + Leaderboard row */}
+        {/* Sales History + Leaderboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Sales History */}
           <Card className="border-border lg:col-span-2">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-semibold text-foreground">Sales History</CardTitle>
@@ -205,7 +229,6 @@ const ResellerDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Leaderboard */}
           <Card className="border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -241,9 +264,7 @@ const ResellerDashboard = () => {
               <div className="space-y-1.5 flex-1 max-w-xs">
                 <label className="text-sm font-medium text-foreground">Withdraw Method</label>
                 <Select value={withdrawMethod} onValueChange={setWithdrawMethod}>
-                  <SelectTrigger className="rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="upi">UPI</SelectItem>
                     <SelectItem value="bank">Bank Transfer</SelectItem>
