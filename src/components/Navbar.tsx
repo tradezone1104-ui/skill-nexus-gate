@@ -82,7 +82,7 @@ const Navbar = () => {
         </div>
 
         {/* Center: Search bar */}
-        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[600px]">
+        <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-[600px] mx-10">
           <div className="relative w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
