@@ -2,10 +2,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Star, Users, Clock, BookOpen, CheckCircle, MessageCircle, Heart,
   ShoppingCart, Play, ChevronDown, ChevronUp, Globe, Calendar, Award,
-  Shield, Lock, Timer
+  Shield, Lock, Timer, Gift, Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink,
   BreadcrumbSeparator, BreadcrumbPage
@@ -24,7 +25,7 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 // Generate deterministic fake course sections from course data
 function generateSections(course: ReturnType<typeof getCourseById>) {
@@ -98,6 +99,19 @@ const CourseDetail = () => {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
+  const [isSticky, setIsSticky] = useState(false);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = thumbnailRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsSticky(!entry.isIntersecting),
+      { threshold: 0, rootMargin: "-80px 0px 0px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [course?.id]);
 
   const sections = useMemo(() => generateSections(course), [course?.id]);
 
@@ -364,21 +378,25 @@ const CourseDetail = () => {
           </div>
 
           {/* ===== RIGHT SIDE — STICKY CARD ===== */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-20 space-y-4">
+          <div className="hidden lg:block lg:col-span-1">
+            {/* Sentinel element to track thumbnail visibility */}
+            <div ref={thumbnailRef} className="h-0" />
+
+            <div className={`sticky top-20 transition-all duration-300 ${isSticky ? "top-20" : ""}`}>
               <div className="bg-card rounded-xl border border-border overflow-hidden shadow-card">
-                {/* Thumbnail */}
-                <div className="aspect-video relative overflow-hidden">
-                  <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-background/30 flex items-center justify-center">
-                    <div className="h-14 w-14 rounded-full bg-background/80 flex items-center justify-center">
-                      <Play className="h-6 w-6 text-foreground ml-1" />
+                {/* Thumbnail - only visible when not sticky */}
+                {!isSticky && (
+                  <div className="aspect-video relative overflow-hidden">
+                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-background/30 flex items-center justify-center">
+                      <div className="h-14 w-14 rounded-full bg-background/80 flex items-center justify-center">
+                        <Play className="h-6 w-6 text-foreground ml-1" />
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="p-5 space-y-4">
-                  {/* Pricing */}
+                <div className="p-5 space-y-3">
                   {hasAccess ? (
                     <div className="space-y-3">
                       <div className="bg-primary/10 border border-primary/30 rounded-lg p-4 text-center">
@@ -394,6 +412,7 @@ const CourseDetail = () => {
                     </div>
                   ) : (
                     <>
+                      {/* Pricing */}
                       <div>
                         <div className="flex items-center gap-3">
                           <span className="font-display font-bold text-3xl text-foreground">₹{course.price}</span>
@@ -406,6 +425,7 @@ const CourseDetail = () => {
                         </div>
                       </div>
 
+                      {/* Buttons */}
                       <Button
                         onClick={handleBuyNow}
                         size="lg"
@@ -425,38 +445,66 @@ const CourseDetail = () => {
                         {inCart ? "Already in Cart" : "Add to Cart"}
                       </Button>
 
-                      <button
-                        onClick={() => toggleWishlist(course.id)}
-                        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-1.5 py-1"
-                      >
-                        <Heart className={`h-4 w-4 ${wishlisted ? "fill-destructive text-destructive" : ""}`} />
-                        {wishlisted ? "Wishlisted" : "Add to Wishlist"}
-                      </button>
+                      {/* Icon row: Wishlist, Share, Gift */}
+                      <div className="flex items-center justify-center gap-6 py-1">
+                        <button
+                          onClick={() => toggleWishlist(course.id)}
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <Heart className={`h-4 w-4 ${wishlisted ? "fill-destructive text-destructive" : ""}`} />
+                          Wishlist
+                        </button>
+                        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                          <Gift className="h-4 w-4" />
+                          Gift
+                        </button>
+                        <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                          <Share2 className="h-4 w-4" />
+                          Share
+                        </button>
+                      </div>
+
+                      <Separator />
+
+                      {/* Subscribe banner */}
+                      <div className="text-center space-y-2 py-1">
+                        <p className="text-xs text-muted-foreground">This course is included in Premium</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full border-primary text-primary hover:bg-primary/10 font-semibold text-xs"
+                          onClick={() => navigate("/subscribe")}
+                        >
+                          Start Subscription — ₹499/month
+                        </Button>
+                        <p className="text-[11px] text-muted-foreground">Access 2000+ courses</p>
+                      </div>
+
+                      <Separator />
+
+                      {/* 30-day guarantee */}
+                      <p className="text-xs text-muted-foreground text-center">30-day money-back guarantee</p>
                     </>
                   )}
 
-                  {/* Includes */}
-                  <div className="border-t border-border pt-4">
-                    <p className="text-sm font-semibold text-foreground mb-3">This course includes:</p>
-                    <div className="space-y-2.5">
-                      {[
-                        { icon: BookOpen, text: `${course.lessons} video lessons` },
-                        { icon: Clock, text: `${course.duration} of content` },
-                        { icon: Shield, text: "Full lifetime access" },
-                        { icon: MessageCircle, text: "Telegram community access" },
-                        { icon: Award, text: "Certificate of completion" },
-                      ].map(({ icon: Icon, text }, i) => (
-                        <div key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
-                          <Icon className="h-4 w-4 shrink-0" />
-                          <span>{text}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {!hasAccess && (
-                    <div className="text-xs text-muted-foreground text-center pt-2">
-                      30-day money-back guarantee
+                  {/* Course includes - only when not sticky or has access */}
+                  {(!isSticky || hasAccess) && (
+                    <div className="border-t border-border pt-4">
+                      <p className="text-sm font-semibold text-foreground mb-3">This course includes:</p>
+                      <div className="space-y-2.5">
+                        {[
+                          { icon: BookOpen, text: `${course.lessons} video lessons` },
+                          { icon: Clock, text: `${course.duration} of content` },
+                          { icon: Shield, text: "Full lifetime access" },
+                          { icon: MessageCircle, text: "Telegram community access" },
+                          { icon: Award, text: "Certificate of completion" },
+                        ].map(({ icon: Icon, text }, i) => (
+                          <div key={i} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span>{text}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
