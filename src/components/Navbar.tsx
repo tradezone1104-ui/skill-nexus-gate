@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check } from "lucide-react";
+import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check, Trash2, BookOpen, DollarSign, Tag, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
