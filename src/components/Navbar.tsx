@@ -24,7 +24,7 @@ const Navbar = () => {
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-primary-foreground font-display font-bold text-sm">CX</span>
           </div>
-          <span className="font-display font-bold text-lg text-foreground hidden sm:block">CourseX</span>
+          <span className="font-display font-bold text-lg text-foreground hidden sm:block">CourseVerse</span>
         </Link>
 
         <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md">
@@ -32,10 +32,10 @@ const Navbar = () => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={query}
-              onChange={e => setQuery(e.target.value)}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search 2000+ courses..."
-              className="pl-10 bg-secondary border-border focus:border-primary"
-            />
+              className="pl-10 bg-secondary border-border focus:border-primary" />
+            
           </div>
         </form>
 
@@ -62,17 +62,17 @@ const Navbar = () => {
         </Button>
       </div>
 
-      {mobileOpen && (
-        <div className="md:hidden border-t border-border bg-card p-4 animate-fade-in">
+      {mobileOpen &&
+      <div className="md:hidden border-t border-border bg-card p-4 animate-fade-in">
           <form onSubmit={handleSearch} className="mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Search courses..."
-                className="pl-10 bg-secondary"
-              />
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search courses..."
+              className="pl-10 bg-secondary" />
+            
             </div>
           </form>
           <div className="flex flex-col gap-1">
@@ -83,9 +83,9 @@ const Navbar = () => {
             <Link to="/courses?category=business" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">Business</Link>
           </div>
         </div>
-      )}
-    </nav>
-  );
+      }
+    </nav>);
+
 };
 
 export default Navbar;
