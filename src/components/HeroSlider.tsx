@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -48,19 +48,46 @@ const slides = [
 
 const HeroSlider = () => {
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const dragStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
 
   const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
-  const prev = () => setCurrent((c) => (c - 1 + slides.length) % slides.length);
+  const prev = useCallback(() => setCurrent((c) => (c - 1 + slides.length) % slides.length), []);
 
   useEffect(() => {
+    if (paused) return;
     const timer = setInterval(next, 5000);
     return () => clearInterval(timer);
-  }, [next]);
+  }, [next, paused]);
+
+  const handleDragStart = (clientX: number) => {
+    dragStartX.current = clientX;
+    isDragging.current = false;
+  };
+
+  const handleDragEnd = (clientX: number) => {
+    if (dragStartX.current === null) return;
+    const diff = clientX - dragStartX.current;
+    if (Math.abs(diff) > 50) {
+      isDragging.current = true;
+      diff < 0 ? next() : prev();
+    }
+    dragStartX.current = null;
+  };
 
   const slide = slides[current];
 
   return (
-    <section className="relative overflow-hidden bg-hero-gradient mt-6">
+    <section
+      className="relative overflow-hidden bg-hero-gradient mt-6 select-none"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onMouseDown={(e) => handleDragStart(e.clientX)}
+      onMouseUp={(e) => handleDragEnd(e.clientX)}
+      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
+      onTouchEnd={(e) => handleDragEnd(e.changedTouches[0].clientX)}
+    >
       <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} transition-all duration-700`} />
       <div className="container mx-auto px-4 py-16 md:py-24 relative">
         <div className="max-w-3xl mx-auto text-center space-y-5 animate-fade-up" key={current}>
