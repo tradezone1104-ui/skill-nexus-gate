@@ -73,6 +73,7 @@ const Navbar = () => {
   const themeRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const { theme, setTheme } = useTheme();
   const { user, profile, signOut } = useAuth();
   const { cartCount } = useCartContext();
