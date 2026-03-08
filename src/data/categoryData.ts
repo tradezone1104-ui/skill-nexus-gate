@@ -54,7 +54,7 @@ export const categoryGroups: CategoryGroup[] = [
     ],
   },
   {
-    id: "price-action",
+    id: "price-action-smc",
     name: "Price Action / SMC",
     subcategories: [
       { id: "price-action-basics", name: "Price Action" },
