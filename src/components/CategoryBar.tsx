@@ -41,7 +41,7 @@ const CategoryBar = () => {
     <div ref={containerRef} className="relative z-40" onMouseLeave={handleMouseLeave}>
       {/* Main category bar */}
       <div className="border-b border-border bg-card">
-        <div className="max-w-[1200px] mx-auto px-4 relative">
+        <div className="max-w-[1200px] mx-auto px-6 relative">
           <button onClick={() => scroll("left")} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-card/90 p-1 rounded-r border-r border-border text-muted-foreground hover:text-foreground lg:hidden">
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -97,7 +97,7 @@ const CategoryBar = () => {
             className="animate-fade-in"
             style={{ background: "hsl(222 47% 11%)", height: "48px" }}
           >
-            <div className="max-w-[1200px] mx-auto px-4 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
+            <div className="max-w-[1200px] mx-auto px-6 h-full flex items-center justify-center gap-6 overflow-x-auto scrollbar-hide">
               {activeCat.subcategories.map((sub) => (
                 <Link
                   key={sub.id}
