@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, Users, Clock, ShoppingCart, Heart, CheckCircle } from "lucide-react";
+import { Star, Users, Clock, ShoppingCart, Heart, CheckCircle, Crown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useWishlistContext } from "@/contexts/WishlistContext";
