@@ -105,9 +105,31 @@ const Cart = () => {
                 </div>
                 <Button
                   size="lg"
+                  disabled={checkingOut}
+                  onClick={async () => {
+                    if (!user) { navigate("/login"); return; }
+                    setCheckingOut(true);
+                    try {
+                      const rows = courses.map((c) => ({
+                        user_id: user.id,
+                        course_id: c!.id,
+                        price_paid: c!.price,
+                      }));
+                      const { error } = await supabase.from("purchases").insert(rows);
+                      if (error) throw error;
+                      // Clear cart after purchase
+                      for (const c of courses) await removeFromCart(c!.id);
+                      toast.success("Purchase complete! 🎉");
+                      navigate("/purchase-history");
+                    } catch (e: any) {
+                      toast.error(e.message || "Checkout failed");
+                    } finally {
+                      setCheckingOut(false);
+                    }
+                  }}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                 >
-                  Proceed to Checkout
+                  {checkingOut ? "Processing…" : "Proceed to Checkout"}
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">30-day money-back guarantee</p>
               </div>
