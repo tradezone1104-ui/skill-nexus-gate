@@ -84,6 +84,8 @@ const CourseDetail = () => {
                 ))}
               </div>
             </div>
+
+            <CourseReviews courseId={course.id} />
           </div>
 
           {/* Sidebar */}
