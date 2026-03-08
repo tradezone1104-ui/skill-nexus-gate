@@ -41,17 +41,8 @@ const Login = () => {
     setLoading(false);
   };
 
-  const handleGoogleLogin = async () => {
-    const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (error) {
-      toast({
-        title: "Google login failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleGoogleLogin = () => {
+    toast({ title: "Coming Soon! 🚀" });
   };
 
   return (
