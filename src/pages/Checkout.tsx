@@ -407,7 +407,7 @@ const Checkout = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                        <Coins className="h-4 w-4 text-yellow-500" /> Use CV Coins
+                        <Coins className="h-4 w-4 text-[hsl(var(--warning))]" /> Use CV Coins
                       </p>
                       <p className="text-[11px] text-muted-foreground mt-0.5">
                         {balance} coins available · Max ₹{maxCoins} off
