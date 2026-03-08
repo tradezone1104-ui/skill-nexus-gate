@@ -73,6 +73,8 @@ const App = () => (
                   <Route path="/refer" element={<ReferAFriend />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/settings/profile" element={<ProfileSettings />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/contact" element={<Contact />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
