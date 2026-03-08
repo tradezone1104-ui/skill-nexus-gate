@@ -21,13 +21,6 @@ export interface Course {
   featured?: boolean;
 }
 
-export const categories = categoryGroups.map((cg) => ({
-  id: cg.id,
-  name: cg.name,
-  icon: categoryIconMap[cg.id] || "📚",
-  count: 0, // will be computed after generation
-}));
-
 const categoryIconMap: Record<string, string> = {
   trading: "📈",
   options: "📋",
