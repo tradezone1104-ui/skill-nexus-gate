@@ -31,6 +31,10 @@ const CourseCard = ({ course }: { course: Course }) => {
               <Badge className="bg-emerald-600 text-primary-foreground text-xs font-semibold gap-1">
                 <CheckCircle className="h-3 w-3" /> Purchased
               </Badge>
+            ) : isSubscribed ? (
+              <Badge className="bg-secondary text-secondary-foreground text-xs font-semibold gap-1">
+                <Crown className="h-3 w-3" /> Included in Premium
+              </Badge>
             ) : (
               <Badge className="bg-primary text-primary-foreground text-xs font-semibold">
                 {discount}% OFF
