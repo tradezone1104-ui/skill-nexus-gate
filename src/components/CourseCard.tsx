@@ -12,7 +12,9 @@ const CourseCard = ({ course }: { course: Course }) => {
   const { isWishlisted, toggleWishlist } = useWishlistContext();
   const { isInCart, addToCart } = useCartContext();
   const { isPurchased } = usePurchaseContext();
+  const { isSubscribed } = useSubscription();
   const discount = Math.round((1 - course.price / course.originalPrice) * 100);
+  const hasAccess = isPurchased(course.id) || isSubscribed;
 
   return (
     <div className="rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 shadow-card hover:shadow-glow hover:-translate-y-1 flex flex-col">
