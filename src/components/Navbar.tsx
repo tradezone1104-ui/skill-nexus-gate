@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, Menu, X, Heart, ShoppingCart, Bell, Sun, Moon, LogIn, UserPlus, LogOut, Check, Trash2, BookOpen, DollarSign, Tag, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -67,6 +68,7 @@ const Navbar = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [themeOpen, setThemeOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -105,12 +107,19 @@ const Navbar = () => {
   };
 
   const handleLogout = async () => {
+    setLogoutDialogOpen(false);
     setProfileOpen(false);
+    setMobileOpen(false);
     await signOut();
     navigate("/");
   };
 
+  const promptLogout = () => {
+    setLogoutDialogOpen(true);
+  };
+
   return (
+    <>
     <nav className="sticky top-0 z-50 bg-background border-b border-border w-full">
       <div className="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Logo */}
@@ -362,7 +371,7 @@ const Navbar = () => {
                     {/* Logout - fixed bottom */}
                     <div className="shrink-0 border-t border-border">
                       <button
-                        onClick={handleLogout}
+                        onClick={promptLogout}
                         className="w-full text-left px-4 py-2.5 text-sm transition-colors text-destructive hover:bg-destructive/10"
                       >
                         <LogOut className="h-3.5 w-3.5 inline mr-2" />
@@ -414,7 +423,7 @@ const Navbar = () => {
                 <Link to="/cart" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Cart</Link>
                 <Link to="/exchange" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Exchange Courses</Link>
                 <Link to="/settings" onClick={() => setMobileOpen(false)} className="px-3 py-2.5 rounded-md text-foreground hover:bg-muted transition-colors text-sm font-medium">Account Settings</Link>
-                <button onClick={() => { setMobileOpen(false); handleLogout(); }} className="text-left px-3 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium">Log Out</button>
+                <button onClick={() => { setMobileOpen(false); promptLogout(); }} className="text-left px-3 py-2.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium">Log Out</button>
               </>
             ) : (
               <>
@@ -429,6 +438,31 @@ const Navbar = () => {
         </div>
       )}
     </nav>
+
+    {/* Logout Confirmation Modal */}
+    <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+      <AlertDialogContent className="bg-card border-border rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-w-sm">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-foreground text-lg font-semibold">Confirm Logout</AlertDialogTitle>
+          <AlertDialogDescription className="text-muted-foreground text-sm">
+            Are you sure you want to log out of your CourseVerse account?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="gap-2 sm:gap-2">
+          <AlertDialogCancel className="rounded-lg border-border text-foreground hover:bg-muted">
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleLogout}
+            className="rounded-lg bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            <LogOut className="h-4 w-4 mr-1.5" />
+            Logout
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 };
 
