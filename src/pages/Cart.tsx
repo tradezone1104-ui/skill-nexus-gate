@@ -122,6 +122,7 @@ const Cart = () => {
                       if (error) throw error;
                       // Clear cart after purchase
                       for (const c of courses) await removeFromCart(c!.id);
+                      addPurchasedIds(courses.map((c) => c!.id));
                       toast.success("Purchase complete! 🎉");
                       navigate("/purchase-history");
                     } catch (e: any) {
