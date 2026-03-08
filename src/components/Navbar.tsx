@@ -119,6 +119,7 @@ const Navbar = () => {
   };
 
   return (
+    <>
     <nav className="sticky top-0 z-50 bg-background border-b border-border w-full">
       <div className="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Logo */}
