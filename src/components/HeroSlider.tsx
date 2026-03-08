@@ -22,7 +22,7 @@ const slides = [
   },
   {
     title: "Free Learning",
-    subtitle: "Access free trading courses, PDFs, tools and resources",
+    subtitle: "Access free resources",
     description: "Start your journey with our collection of free courses, guides, and trading tools.",
     cta: "Explore Free Resources",
     ctaLink: "/free-learning",
