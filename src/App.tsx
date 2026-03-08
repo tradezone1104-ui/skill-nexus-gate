@@ -81,6 +81,7 @@ const App = () => (
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cv-coins" element={<CvCoins />} />
+                  <Route path="/checkout" element={<Checkout />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
