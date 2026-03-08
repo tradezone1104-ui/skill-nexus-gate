@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
+import CategoryBar from "@/components/CategoryBar";
 import Footer from "@/components/Footer";
 import CourseCard from "@/components/CourseCard";
 import { searchCourses, categories } from "@/data/courses";
@@ -45,6 +46,7 @@ const Courses = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <CategoryBar />
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
@@ -54,7 +56,6 @@ const Courses = () => {
           <p className="text-muted-foreground">{filtered.length.toLocaleString()} courses available</p>
         </div>
 
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -90,7 +91,6 @@ const Courses = () => {
           </Select>
         </div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {paginated.map(course => (
             <CourseCard key={course.id} course={course} />
@@ -105,7 +105,7 @@ const Courses = () => {
 
         {hasMore && (
           <div className="text-center mt-10">
-            <Button variant="outline" size="lg" onClick={() => setPage(p => p + 1)} className="border-border hover:bg-secondary">
+            <Button variant="outline" size="lg" onClick={() => setPage(p => p + 1)} className="border-border hover:bg-muted">
               Load More Courses
             </Button>
           </div>
