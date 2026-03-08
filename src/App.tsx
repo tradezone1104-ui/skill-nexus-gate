@@ -47,7 +47,7 @@ const App = () => (
                 <PurchaseProvider>
                 <SubscriptionProvider>
                 <NotificationProvider>
-                  <Route path="/" element={<Index />} />
+                <Routes>
                   <Route path="/course-list" element={<CourseList />} />
                   <Route path="/courses" element={<Courses />} />
                   <Route path="/course/:id" element={<CourseDetail />} />
