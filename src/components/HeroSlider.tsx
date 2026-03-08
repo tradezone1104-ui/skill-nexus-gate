@@ -46,11 +46,15 @@ const slides = [
   },
 ];
 
+const DRAG_THRESHOLD = 80;
+
 const HeroSlider = () => {
   const [current, setCurrent] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isGrabbing, setIsGrabbing] = useState(false);
+  const [isSnapping, setIsSnapping] = useState(false);
   const dragStartX = useRef<number | null>(null);
-  const isDragging = useRef(false);
 
   const next = useCallback(() => setCurrent((c) => (c + 1) % slides.length), []);
   const prev = useCallback(() => setCurrent((c) => (c - 1 + slides.length) % slides.length), []);
@@ -61,35 +65,55 @@ const HeroSlider = () => {
     return () => clearInterval(timer);
   }, [next, paused]);
 
-  const handleDragStart = (clientX: number) => {
+  const handlePointerDown = (clientX: number) => {
     dragStartX.current = clientX;
-    isDragging.current = false;
+    setIsGrabbing(true);
+    setIsSnapping(false);
+    setDragOffset(0);
   };
 
-  const handleDragEnd = (clientX: number) => {
+  const handlePointerMove = (clientX: number) => {
     if (dragStartX.current === null) return;
-    const diff = clientX - dragStartX.current;
-    if (Math.abs(diff) > 50) {
-      isDragging.current = true;
-      diff < 0 ? next() : prev();
-    }
-    dragStartX.current = null;
+    setDragOffset(clientX - dragStartX.current);
   };
+
+  const finishDrag = () => {
+    if (dragStartX.current === null) return;
+    setIsSnapping(true);
+    if (Math.abs(dragOffset) > DRAG_THRESHOLD) {
+      dragOffset < 0 ? next() : prev();
+    }
+    setDragOffset(0);
+    dragStartX.current = null;
+    setIsGrabbing(false);
+    setTimeout(() => setIsSnapping(false), 350);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => handlePointerMove(e.clientX);
+  const handleTouchMove = (e: React.TouchEvent) => handlePointerMove(e.touches[0].clientX);
 
   const slide = slides[current];
 
   return (
     <section
-      className="relative overflow-hidden bg-hero-gradient mt-6 select-none"
+      className={`relative overflow-hidden bg-hero-gradient mt-6 select-none ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onMouseDown={(e) => handleDragStart(e.clientX)}
-      onMouseUp={(e) => handleDragEnd(e.clientX)}
-      onTouchStart={(e) => handleDragStart(e.touches[0].clientX)}
-      onTouchEnd={(e) => handleDragEnd(e.changedTouches[0].clientX)}
+      onMouseLeave={() => { setPaused(false); finishDrag(); }}
+      onMouseDown={(e) => { e.preventDefault(); handlePointerDown(e.clientX); }}
+      onMouseMove={handleMouseMove}
+      onMouseUp={finishDrag}
+      onTouchStart={(e) => handlePointerDown(e.touches[0].clientX)}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={finishDrag}
     >
       <div className={`absolute inset-0 bg-gradient-to-r ${slide.gradient} transition-all duration-700`} />
-      <div className="container mx-auto px-4 py-16 md:py-24 relative">
+      <div
+        className="container mx-auto px-4 py-16 md:py-24 relative"
+        style={{
+          transform: `translateX(${dragOffset}px)`,
+          transition: isSnapping ? "transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)" : isGrabbing ? "none" : undefined,
+        }}
+      >
         <div className="max-w-3xl mx-auto text-center space-y-5 animate-fade-up" key={current}>
           <p className="text-sm font-semibold text-primary uppercase tracking-widest">{slide.subtitle}</p>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-display font-bold tracking-tight text-foreground">
