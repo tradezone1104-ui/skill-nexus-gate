@@ -39,6 +39,19 @@ import CvCoins from "./pages/CvCoins";
 import Checkout from "./pages/Checkout";
 import SubscriptionCheckout from "./pages/SubscriptionCheckout";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AdminRoute from "./components/admin/AdminRoute";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminCourses from "./pages/admin/Courses";
+import AdminUsers from "./pages/admin/Users";
+import AdminOrders from "./pages/admin/Orders";
+import AdminSubscriptions from "./pages/admin/Subscriptions";
+import AdminResellers from "./pages/admin/Resellers";
+import AdminCvCoins from "./pages/admin/CvCoinsAdmin";
+import AdminExchangeRequests from "./pages/admin/ExchangeRequests";
+import AdminSellRequests from "./pages/admin/SellRequests";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminSettings from "./pages/admin/Settings";
 
 const queryClient = new QueryClient();
 
