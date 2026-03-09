@@ -99,6 +99,19 @@ const App = () => (
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
+                  <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="courses" element={<AdminCourses />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="subscriptions" element={<AdminSubscriptions />} />
+                    <Route path="resellers" element={<AdminResellers />} />
+                    <Route path="cv-coins" element={<AdminCvCoins />} />
+                    <Route path="exchange-requests" element={<AdminExchangeRequests />} />
+                    <Route path="sell-requests" element={<AdminSellRequests />} />
+                    <Route path="notifications" element={<AdminNotifications />} />
+                    <Route path="settings" element={<AdminSettings />} />
+                  </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <FloatingSupport />
