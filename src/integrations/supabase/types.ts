@@ -35,6 +35,93 @@ export type Database = {
         }
         Relationships: []
       }
+      courses: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          duration_hours: number | null
+          id: string
+          instructor_bio: string | null
+          instructor_name: string | null
+          is_featured: boolean | null
+          is_free: boolean | null
+          is_published: boolean | null
+          language: string | null
+          level: string | null
+          original_price: number | null
+          price: number | null
+          rating: number | null
+          requirements: string[] | null
+          short_description: string | null
+          tags: string[] | null
+          telegram_link: string | null
+          thumbnail_url: string | null
+          title: string
+          total_lectures: number | null
+          total_reviews: number | null
+          total_students: number | null
+          updated_at: string | null
+          what_you_learn: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          instructor_bio?: string | null
+          instructor_name?: string | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          is_published?: boolean | null
+          language?: string | null
+          level?: string | null
+          original_price?: number | null
+          price?: number | null
+          rating?: number | null
+          requirements?: string[] | null
+          short_description?: string | null
+          tags?: string[] | null
+          telegram_link?: string | null
+          thumbnail_url?: string | null
+          title: string
+          total_lectures?: number | null
+          total_reviews?: number | null
+          total_students?: number | null
+          updated_at?: string | null
+          what_you_learn?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_hours?: number | null
+          id?: string
+          instructor_bio?: string | null
+          instructor_name?: string | null
+          is_featured?: boolean | null
+          is_free?: boolean | null
+          is_published?: boolean | null
+          language?: string | null
+          level?: string | null
+          original_price?: number | null
+          price?: number | null
+          rating?: number | null
+          requirements?: string[] | null
+          short_description?: string | null
+          tags?: string[] | null
+          telegram_link?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          total_lectures?: number | null
+          total_reviews?: number | null
+          total_students?: number | null
+          updated_at?: string | null
+          what_you_learn?: string[] | null
+        }
+        Relationships: []
+      }
       cv_coin_balances: {
         Row: {
           balance: number
