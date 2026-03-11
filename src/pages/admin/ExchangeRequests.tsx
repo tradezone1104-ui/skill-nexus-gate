@@ -4,11 +4,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, Trash2, Search } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 export default function AdminExchangeRequests() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -18,15 +19,17 @@ export default function AdminExchangeRequests() {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [rejectMode, setRejectMode] = useState<"direct" | "counter">("direct");
-  const [counterCourse, setCounterCourse] = useState("");
+  const [courseSearch, setCourseSearch] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
     const [rRes, pRes, cRes] = await Promise.all([
       supabase.from("exchange_requests").select("*").order("created_at", { ascending: false }),
       supabase.from("profiles").select("id, full_name, email"),
-      supabase.from("courses").select("id, title"),
+      supabase.from("courses").select("id, title, price"),
     ]);
     setRequests(rRes.data || []);
     const map: Record<string, any> = {};
@@ -37,6 +40,10 @@ export default function AdminExchangeRequests() {
   };
 
   useEffect(() => { fetchData(); }, []);
+
+  const filteredCourses = courseSearch.length >= 2
+    ? courses.filter(c => c.title.toLowerCase().includes(courseSearch.toLowerCase())).slice(0, 8)
+    : [];
 
   const handleApprove = async (id: string, userId: string) => {
     await supabase.from("exchange_requests").update({ status: "approved", updated_at: new Date().toISOString() }).eq("id", id);
@@ -53,7 +60,8 @@ export default function AdminExchangeRequests() {
   const openRejectModal = (req: any) => {
     setSelectedRequest(req);
     setRejectMode("direct");
-    setCounterCourse("");
+    setCourseSearch("");
+    setSelectedCourse(null);
     setRejectModalOpen(true);
   };
 
@@ -71,21 +79,20 @@ export default function AdminExchangeRequests() {
       });
       toast({ title: "Request rejected" });
     } else {
-      if (!counterCourse) {
+      if (!selectedCourse) {
         toast({ title: "Please select a course", variant: "destructive" });
         setSubmitting(false);
         return;
       }
-      const courseName = courses.find(c => c.id === counterCourse)?.title || counterCourse;
       await supabase.from("exchange_requests").update({
         status: "counter_offer",
-        counter_offer_course_name: courseName,
+        counter_offer_course_name: selectedCourse.title,
         updated_at: new Date().toISOString(),
       }).eq("id", selectedRequest.id);
       await supabase.from("notifications").insert({
         user_id: selectedRequest.user_id,
         title: "Exchange Counter Offer",
-        message: `Admin has suggested an alternative course: ${courseName}. Visit your Exchange page to accept or reject this offer.`,
+        message: `Admin has suggested an alternative course: ${selectedCourse.title}. Visit your Exchange page to accept or reject this offer.`,
         icon: "repeat",
       });
       toast({ title: "Counter offer sent" });
@@ -93,6 +100,14 @@ export default function AdminExchangeRequests() {
 
     setSubmitting(false);
     setRejectModalOpen(false);
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await supabase.from("exchange_requests").delete().eq("id", deleteId);
+    toast({ title: "Request removed" });
+    setDeleteId(null);
     fetchData();
   };
 
@@ -134,16 +149,21 @@ export default function AdminExchangeRequests() {
                     <TableCell><Badge className={statusColor[r.status] || ""}>{r.status === "counter_offer" ? "Counter Offer" : r.status}</Badge></TableCell>
                     <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      {r.status === "pending" && (
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleApprove(r.id, r.user_id)} className="gap-1 bg-green-600 hover:bg-green-700">
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => openRejectModal(r)} className="gap-1">
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {r.status === "pending" && (
+                          <>
+                            <Button size="sm" onClick={() => handleApprove(r.id, r.user_id)} className="gap-1 bg-green-600 hover:bg-green-700">
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => openRejectModal(r)} className="gap-1">
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => setDeleteId(r.id)} className="gap-1 text-red-400 border-red-400/30 hover:bg-red-500/10">
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -156,6 +176,7 @@ export default function AdminExchangeRequests() {
         </CardContent>
       </Card>
 
+      {/* Reject / Counter Offer Modal */}
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
         <DialogContent className="bg-[#1E293B] border-[#334155] text-white">
           <DialogHeader>
@@ -184,18 +205,42 @@ export default function AdminExchangeRequests() {
             )}
 
             {rejectMode === "counter" && (
-              <div className="space-y-2">
-                <Label>Select an alternative course to offer</Label>
-                <Select value={counterCourse} onValueChange={setCounterCourse}>
-                  <SelectTrigger className="bg-[#0F172A] border-[#334155]">
-                    <SelectValue placeholder="Select a course..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {courses.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+              <div className="space-y-3">
+                <Label>Search for an alternative course to offer</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={courseSearch}
+                    onChange={(e) => { setCourseSearch(e.target.value); setSelectedCourse(null); }}
+                    placeholder="Type course name to search..."
+                    className="bg-[#0F172A] border-[#334155] pl-9"
+                  />
+                </div>
+                {filteredCourses.length > 0 && !selectedCourse && (
+                  <div className="bg-[#0F172A] border border-[#334155] rounded-lg max-h-48 overflow-y-auto">
+                    {filteredCourses.map((c) => (
+                      <button
+                        key={c.id}
+                        onClick={() => { setSelectedCourse(c); setCourseSearch(c.title); }}
+                        className="w-full text-left px-3 py-2 hover:bg-[#1E293B] transition-colors flex justify-between items-center"
+                      >
+                        <span className="text-sm truncate">{c.title}</span>
+                        <span className="text-xs text-muted-foreground ml-2 shrink-0">₹{c.price}</span>
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
+                {selectedCourse && (
+                  <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex justify-between items-center">
+                    <div>
+                      <p className="text-sm font-medium">{selectedCourse.title}</p>
+                      <p className="text-xs text-muted-foreground">₹{selectedCourse.price}</p>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => { setSelectedCourse(null); setCourseSearch(""); }}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground">The user will be notified with this course suggestion and can accept or reject it.</p>
               </div>
             )}
@@ -213,6 +258,20 @@ export default function AdminExchangeRequests() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-[#1E293B] border-[#334155] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Exchange Request</AlertDialogTitle>
+            <AlertDialogDescription>This will permanently delete this exchange request. This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
