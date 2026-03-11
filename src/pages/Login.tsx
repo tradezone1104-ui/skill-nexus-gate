@@ -35,11 +35,11 @@ const Login = () => {
         description: error.message,
         variant: "destructive",
       });
+      setLoading(false);
     } else {
       toast({ title: "Welcome back!", description: "You've been logged in successfully." });
-      navigate("/");
+      navigate("/", { replace: true });
     }
-    setLoading(false);
   };
 
   const handleGoogleLogin = async () => {

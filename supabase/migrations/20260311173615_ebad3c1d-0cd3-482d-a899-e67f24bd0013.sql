@@ -1,0 +1,1 @@
+ALTER TABLE public.exchange_requests ADD COLUMN IF NOT EXISTS counter_offer_course_name text;

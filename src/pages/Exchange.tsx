@@ -27,6 +27,7 @@ interface ExchangeRequest {
   want_type: string;
   status: string;
   admin_note: string | null;
+  counter_offer_course_name: string | null;
   created_at: string;
 }
 
@@ -368,6 +369,32 @@ const Exchange = () => {
                                 <ExternalLink className="h-3.5 w-3.5 mr-1.5" /> Contact CourseVerse Bot
                               </a>
                             </Button>
+                          </div>
+                        )}
+
+                        {req.status === "counter_offer" && req.counter_offer_course_name && (
+                          <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 space-y-3">
+                            <div>
+                              <p className="text-sm font-medium text-foreground">Admin has suggested an alternative course:</p>
+                              <p className="text-lg font-bold text-foreground mt-1">{req.counter_offer_course_name}</p>
+                            </div>
+                            <div className="flex gap-3">
+                              <Button size="sm" onClick={async () => {
+                                await supabase.from("exchange_requests").update({ status: "approved", want_course_name: req.counter_offer_course_name! }).eq("id", req.id);
+                                toast({ title: "Counter offer accepted!" });
+                                window.open("https://t.me/CourseVerseBot", "_blank");
+                                fetchExchangeRequests();
+                              }} className="gap-1.5">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Accept Offer
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={async () => {
+                                await supabase.from("exchange_requests").update({ status: "closed" }).eq("id", req.id);
+                                toast({ title: "Counter offer rejected." });
+                                fetchExchangeRequests();
+                              }} className="gap-1.5">
+                                <XCircle className="h-3.5 w-3.5" /> Reject Offer
+                              </Button>
+                            </div>
                           </div>
                         )}
 
