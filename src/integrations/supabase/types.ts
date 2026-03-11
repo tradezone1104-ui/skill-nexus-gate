@@ -173,6 +173,7 @@ export type Database = {
       exchange_requests: {
         Row: {
           admin_note: string | null
+          counter_offer_course_name: string | null
           created_at: string
           id: string
           offer_course_author: string
@@ -188,6 +189,7 @@ export type Database = {
         }
         Insert: {
           admin_note?: string | null
+          counter_offer_course_name?: string | null
           created_at?: string
           id?: string
           offer_course_author: string
@@ -203,6 +205,7 @@ export type Database = {
         }
         Update: {
           admin_note?: string | null
+          counter_offer_course_name?: string | null
           created_at?: string
           id?: string
           offer_course_author?: string
