@@ -27,6 +27,7 @@ interface ExchangeRequest {
   want_type: string;
   status: string;
   admin_note: string | null;
+  counter_offer_course_name: string | null;
   created_at: string;
 }
 
