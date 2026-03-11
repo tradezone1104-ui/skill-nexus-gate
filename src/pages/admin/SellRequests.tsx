@@ -5,12 +5,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Check, X, Trash2 } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+
+const TELEGRAM_BOT_URL = "https://t.me/CourseVerseBot";
 
 export default function AdminSellRequests() {
   const [requests, setRequests] = useState<any[]>([]);
@@ -22,6 +24,7 @@ export default function AdminSellRequests() {
   const [counterPrice, setCounterPrice] = useState("");
   const [counterNote, setCounterNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchData = async () => {
@@ -43,7 +46,7 @@ export default function AdminSellRequests() {
     await supabase.from("notifications").insert({
       user_id: userId,
       title: "Sell Request Approved",
-      message: "Your course sell request has been approved! Contact the CourseVerse Bot on Telegram to complete the sale.",
+      message: `Your course sell request has been approved! Contact us on Telegram to complete the sale: ${TELEGRAM_BOT_URL}`,
       icon: "check",
     });
     toast({ title: "Request approved" });
@@ -98,6 +101,14 @@ export default function AdminSellRequests() {
     fetchData();
   };
 
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    await supabase.from("sell_requests").delete().eq("id", deleteId);
+    toast({ title: "Request removed" });
+    setDeleteId(null);
+    fetchData();
+  };
+
   const statusColor: Record<string, string> = {
     pending: "bg-yellow-500/20 text-yellow-400",
     approved: "bg-green-500/20 text-green-400",
@@ -138,16 +149,21 @@ export default function AdminSellRequests() {
                     <TableCell><Badge className={statusColor[r.status] || ""}>{r.status === "counter_offer" ? "Counter Offer" : r.status}</Badge></TableCell>
                     <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      {r.status === "pending" && (
-                        <div className="flex gap-2">
-                          <Button size="sm" onClick={() => handleApprove(r.id, r.user_id)} className="gap-1 bg-green-600 hover:bg-green-700">
-                            <Check className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="destructive" onClick={() => openRejectModal(r)} className="gap-1">
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {r.status === "pending" && (
+                          <>
+                            <Button size="sm" onClick={() => handleApprove(r.id, r.user_id)} className="gap-1 bg-green-600 hover:bg-green-700">
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => openRejectModal(r)} className="gap-1">
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </>
+                        )}
+                        <Button size="sm" variant="outline" onClick={() => setDeleteId(r.id)} className="gap-1 text-red-400 border-red-400/30 hover:bg-red-500/10">
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -160,6 +176,7 @@ export default function AdminSellRequests() {
         </CardContent>
       </Card>
 
+      {/* Reject / Counter Offer Modal */}
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
         <DialogContent className="bg-[#1E293B] border-[#334155] text-white">
           <DialogHeader>
@@ -173,18 +190,10 @@ export default function AdminSellRequests() {
               </div>
             )}
             <div className="flex gap-3">
-              <Button
-                variant={rejectMode === "direct" ? "default" : "outline"}
-                onClick={() => setRejectMode("direct")}
-                className="flex-1"
-              >
+              <Button variant={rejectMode === "direct" ? "default" : "outline"} onClick={() => setRejectMode("direct")} className="flex-1">
                 Direct Reject
               </Button>
-              <Button
-                variant={rejectMode === "counter" ? "default" : "outline"}
-                onClick={() => setRejectMode("counter")}
-                className="flex-1"
-              >
+              <Button variant={rejectMode === "counter" ? "default" : "outline"} onClick={() => setRejectMode("counter")} className="flex-1">
                 Counter Price Offer
               </Button>
             </div>
@@ -197,24 +206,11 @@ export default function AdminSellRequests() {
               <div className="space-y-3">
                 <div className="space-y-2">
                   <Label>Your offer price (₹)</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={counterPrice}
-                    onChange={(e) => setCounterPrice(e.target.value)}
-                    placeholder="Enter your price..."
-                    className="bg-[#0F172A] border-[#334155]"
-                  />
+                  <Input type="number" min="1" value={counterPrice} onChange={(e) => setCounterPrice(e.target.value)} placeholder="Enter your price..." className="bg-[#0F172A] border-[#334155]" />
                 </div>
                 <div className="space-y-2">
                   <Label>Note to user (optional)</Label>
-                  <Textarea
-                    value={counterNote}
-                    onChange={(e) => setCounterNote(e.target.value)}
-                    placeholder="Any message for the user..."
-                    className="bg-[#0F172A] border-[#334155]"
-                    rows={2}
-                  />
+                  <Textarea value={counterNote} onChange={(e) => setCounterNote(e.target.value)} placeholder="Any message for the user..." className="bg-[#0F172A] border-[#334155]" rows={2} />
                 </div>
                 <p className="text-sm text-muted-foreground">The user will be notified and can accept or reject your price offer.</p>
               </div>
@@ -222,17 +218,27 @@ export default function AdminSellRequests() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRejectModalOpen(false)}>Cancel</Button>
-            <Button
-              variant={rejectMode === "direct" ? "destructive" : "default"}
-              onClick={handleRejectSubmit}
-              disabled={submitting}
-            >
+            <Button variant={rejectMode === "direct" ? "destructive" : "default"} onClick={handleRejectSubmit} disabled={submitting}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
               {rejectMode === "direct" ? "Reject" : "Send Counter Offer"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent className="bg-[#1E293B] border-[#334155] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Sell Request</AlertDialogTitle>
+            <AlertDialogDescription>This will permanently delete this sell request. This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Remove</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
