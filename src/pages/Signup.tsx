@@ -21,6 +21,13 @@ const Signup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate("/", { replace: true });
+    });
+  }, [navigate]);
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
