@@ -21,6 +21,32 @@ const CATEGORIES = [
 ];
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
+const DEFAULT_LEARN = [
+  "Master the fundamentals from scratch",
+  "Build real-world trading strategies",
+  "Understand risk management and position sizing",
+  "Read and analyze market charts with confidence",
+  "Develop a disciplined trading psychology",
+  "Apply advanced techniques used by professionals",
+  "Create your own personalized trading system",
+  "Access exclusive community resources and support",
+];
+
+const DEFAULT_REQUIREMENTS = [
+  "No prior experience required — we start from the basics",
+  "A computer or mobile device with internet access",
+  "A demo or real trading/demat account (guidance provided)",
+  "Willingness to practice and learn consistently",
+];
+
+const DEFAULT_TAGS = [
+  "trading",
+  "investing",
+  "stock market",
+  "beginners",
+  "technical analysis",
+];
+
 const CAT_COLORS: Record<string, string> = {
   "Trading": "bg-blue-500/20 text-blue-400",
   "Options": "bg-purple-500/20 text-purple-400",
@@ -155,27 +181,52 @@ export default function AdminCourses() {
     is_featured: f.is_featured,
     is_free: f.is_free,
     is_published: f.is_published,
-    what_you_learn: f.what_you_learn,
-    requirements: f.requirements,
-    tags: f.tags,
+    what_you_learn: f.what_you_learn.length > 0 ? f.what_you_learn : DEFAULT_LEARN,
+    requirements: f.requirements.length > 0 ? f.requirements : DEFAULT_REQUIREMENTS,
+    tags: f.tags.length > 0 ? f.tags : DEFAULT_TAGS,
   });
 
   const handleSave = async () => {
     if (!form.title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
     setSaving(true);
-    const payload = buildPayload(form);
-    if (editId) {
-      const { error } = await supabase.from("courses").update(payload as any).eq("id", editId);
-      if (error) toast({ title: "Error updating course", description: error.message, variant: "destructive" });
-      else toast({ title: "Course updated successfully" });
-    } else {
-      const { error } = await supabase.from("courses").insert(payload as any);
-      if (error) toast({ title: "Error adding course", description: error.message, variant: "destructive" });
-      else toast({ title: "Course added successfully" });
+
+    // Capture any pending inputs before building payload
+    const finalLearn = [...form.what_you_learn];
+    if (learnInput.trim()) finalLearn.push(learnInput.trim());
+
+    const finalReq = [...form.requirements];
+    if (reqInput.trim()) finalReq.push(reqInput.trim());
+
+    const finalTags = [...form.tags];
+    if (tagInput.trim()) {
+      const t = tagInput.trim();
+      if (!finalTags.includes(t)) finalTags.push(t);
     }
-    setSaving(false);
-    setFormOpen(false);
-    fetchCourses();
+
+    const payload = buildPayload({
+      ...form,
+      what_you_learn: finalLearn.filter(i => i.trim() !== ""),
+      requirements: finalReq.filter(i => i.trim() !== ""),
+      tags: finalTags.filter(i => i.trim() !== "")
+    });
+
+    try {
+      if (editId) {
+        const { error } = await supabase.from("courses").update(payload as any).eq("id", editId);
+        if (error) throw error;
+        toast({ title: "Course updated successfully" });
+      } else {
+        const { error } = await supabase.from("courses").insert(payload as any);
+        if (error) throw error;
+        toast({ title: "Course added successfully" });
+      }
+      setFormOpen(false);
+      fetchCourses();
+    } catch (error: any) {
+      toast({ title: "Error saving course", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async () => {
@@ -246,12 +297,37 @@ export default function AdminCourses() {
 
   // CSV
   const exportCSV = () => {
-    const header = "title,category,subcategory,instructor_name,price,original_price,level,rating,total_students,is_published,is_featured\n";
-    const rows = courses.map(c =>
-      `"${c.title}","${c.category || ''}","${c.subcategory || ''}","${c.instructor_name || ''}",${c.price ?? ''},${c.original_price ?? ''},"${c.level || ''}",${c.rating ?? ''},${c.total_students ?? ''},${c.is_published ?? false},${c.is_featured ?? false}`
-    ).join("\n");
+    const columns = [
+      "title", "description", "short_description", "price", "original_price",
+      "thumbnail_url", "instructor_name", "instructor_bio", "category",
+      "subcategory", "level", "language", "duration_hours", "total_lectures",
+      "rating", "total_reviews", "total_students", "telegram_link", "is_free",
+      "is_featured", "is_published", "tags", "what_you_learn", "requirements"
+    ];
+
+    const header = columns.join(",") + "\n";
+    const rows = courses.map(c => {
+      return columns.map(col => {
+        let val = c[col];
+        if (val === null || val === undefined) val = "";
+
+        if (col === "tags" && Array.isArray(val)) {
+          val = `"${val.join(",")}"`;
+        } else if ((col === "what_you_learn" || col === "requirements") && Array.isArray(val)) {
+          val = `"${val.join("|")}"`;
+        } else if (typeof val === "string") {
+          val = `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      }).join(",");
+    }).join("\n");
+
     const blob = new Blob([header + rows], { type: "text/csv" });
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "courses.csv"; a.click();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `courses_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    toast({ title: "Export successful", description: `${courses.length} courses exported.` });
   };
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -279,12 +355,25 @@ export default function AdminCourses() {
         obj.is_free = obj.is_free === "true";
         obj.is_featured = obj.is_featured === "true";
         obj.is_published = obj.is_published === "true";
-        if (obj.tags && typeof obj.tags === "string") obj.tags = obj.tags.split(";").map((t: string) => t.trim()).filter(Boolean);
-        else obj.tags = null;
-        if (obj.what_you_learn && typeof obj.what_you_learn === "string") obj.what_you_learn = obj.what_you_learn.split(";").map((t: string) => t.trim()).filter(Boolean);
-        else obj.what_you_learn = null;
-        if (obj.requirements && typeof obj.requirements === "string") obj.requirements = obj.requirements.split(";").map((t: string) => t.trim()).filter(Boolean);
-        else obj.requirements = null;
+
+        // Handle arrays with specific separators and defaults
+        if (obj.tags && typeof obj.tags === "string" && obj.tags.trim()) {
+          obj.tags = obj.tags.split(",").map((t: string) => t.trim()).filter(Boolean);
+        } else {
+          obj.tags = DEFAULT_TAGS;
+        }
+
+        if (obj.what_you_learn && typeof obj.what_you_learn === "string" && obj.what_you_learn.trim()) {
+          obj.what_you_learn = obj.what_you_learn.split("|").map((t: string) => t.trim()).filter(Boolean);
+        } else {
+          obj.what_you_learn = DEFAULT_LEARN;
+        }
+
+        if (obj.requirements && typeof obj.requirements === "string" && obj.requirements.trim()) {
+          obj.requirements = obj.requirements.split("|").map((t: string) => t.trim()).filter(Boolean);
+        } else {
+          obj.requirements = DEFAULT_REQUIREMENTS;
+        }
         // Clean empty strings to null for optional text fields
         if (!obj.category) obj.category = null;
         if (!obj.subcategory) obj.subcategory = null;
@@ -603,8 +692,8 @@ export default function AdminCourses() {
                   value={tagInput}
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={handleTagKeyDown}
-                  placeholder={form.tags.length === 0 ? "Type and press Enter..." : ""}
-                  className="bg-transparent outline-none text-sm flex-1 min-w-[100px] text-foreground placeholder:text-muted-foreground"
+                  placeholder={form.tags.length === 0 ? `Defaults: ${DEFAULT_TAGS.join(", ")}` : ""}
+                  className="bg-transparent outline-none text-sm flex-1 min-w-[100px] text-foreground placeholder:text-muted-foreground/50"
                 />
               </div>
             </div>
@@ -614,18 +703,25 @@ export default function AdminCourses() {
               <div className="space-y-2">
                 {form.what_you_learn.map((p, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Input value={p} onChange={e => {
-                      const updated = [...form.what_you_learn];
-                      updated[i] = e.target.value;
-                      setForm(f => ({ ...f, what_you_learn: updated }));
-                    }} className="bg-[#0F172A] border-[#334155] flex-1" />
+                    <Input 
+                      value={form.what_you_learn[i]} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setForm(f => {
+                          const updated = [...f.what_you_learn];
+                          updated[i] = val;
+                          return { ...f, what_you_learn: updated };
+                        });
+                      }} 
+                      className="bg-[#0F172A] border-[#334155] flex-1" 
+                    />
                     <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-400" onClick={() => setForm(f => ({ ...f, what_you_learn: f.what_you_learn.filter((_, j) => j !== i) }))}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
-                  <Input value={learnInput} onChange={e => setLearnInput(e.target.value)} className="bg-[#0F172A] border-[#334155]" placeholder="Add a learning point" onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addLearnPoint())} />
+                  <Input value={learnInput} onChange={e => setLearnInput(e.target.value)} className="bg-[#0F172A] border-[#334155]" placeholder={form.what_you_learn.length === 0 ? "Empty will use 8 default points..." : "Add a learning point"} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addLearnPoint())} />
                   <Button type="button" size="sm" onClick={addLearnPoint} className="bg-green-600 hover:bg-green-700"><Plus className="h-4 w-4" /></Button>
                 </div>
               </div>
@@ -636,18 +732,25 @@ export default function AdminCourses() {
               <div className="space-y-2">
                 {form.requirements.map((p, i) => (
                   <div key={i} className="flex items-center gap-2">
-                    <Input value={p} onChange={e => {
-                      const updated = [...form.requirements];
-                      updated[i] = e.target.value;
-                      setForm(f => ({ ...f, requirements: updated }));
-                    }} className="bg-[#0F172A] border-[#334155] flex-1" />
+                    <Input 
+                      value={form.requirements[i]} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        setForm(f => {
+                          const updated = [...f.requirements];
+                          updated[i] = val;
+                          return { ...f, requirements: updated };
+                        });
+                      }} 
+                      className="bg-[#0F172A] border-[#334155] flex-1" 
+                    />
                     <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-red-400" onClick={() => setForm(f => ({ ...f, requirements: f.requirements.filter((_, j) => j !== i) }))}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 ))}
                 <div className="flex gap-2">
-                  <Input value={reqInput} onChange={e => setReqInput(e.target.value)} className="bg-[#0F172A] border-[#334155]" placeholder="Add a requirement" onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addReqPoint())} />
+                  <Input value={reqInput} onChange={e => setReqInput(e.target.value)} className="bg-[#0F172A] border-[#334155]" placeholder={form.requirements.length === 0 ? "Empty will use 4 default points..." : "Add a requirement"} onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addReqPoint())} />
                   <Button type="button" size="sm" onClick={addReqPoint} className="bg-green-600 hover:bg-green-700"><Plus className="h-4 w-4" /></Button>
                 </div>
               </div>

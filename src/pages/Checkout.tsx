@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle, MessageCircle, Shield, CreditCard, Smartphone,
-  Building, Coins, Tag, X, Lock, Wallet, ChevronDown
+  Building, Coins, Tag, X, Lock, Wallet, ChevronDown, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCartContext } from "@/contexts/CartContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useCvCoins } from "@/hooks/useCvCoins";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,15 +20,23 @@ type PaymentMethod = "upi" | "card" | "netbanking" | "wallet";
 
 const BANKS = ["State Bank of India", "HDFC Bank", "ICICI Bank", "Axis Bank", "Kotak Mahindra Bank", "Bank of Baroda", "Punjab National Bank"];
 
+// Helper to check if a string is a UUID
+const isUUID = (str: string) => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 const Checkout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const courseId = searchParams.get("course") || "";
-  const course = getCourseById(courseId);
+  const courseId = searchParams.get("courseId") || searchParams.get("course") || "";
   const { user } = useAuth();
+  const { cartIds, removeFromCart } = useCartContext();
   const { isPurchased, addPurchasedIds } = usePurchaseContext();
   const { balance, spendCoins } = useCvCoins();
 
+  const [checkoutCourses, setCheckoutCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
   const [upiId, setUpiId] = useState("");
   const [cardNumber, setCardNumber] = useState("");
@@ -43,11 +52,82 @@ const Checkout = () => {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  if (!course) {
+  useEffect(() => {
+    const fetchCheckoutData = async () => {
+      setLoading(true);
+      
+      const idsToFetch = courseId ? [courseId] : Array.from(cartIds);
+      if (idsToFetch.length === 0) {
+        setCheckoutCourses([]);
+        setLoading(false);
+        return;
+      }
+
+      const uuidList = idsToFetch.filter(isUUID);
+      const slugList = idsToFetch.filter(id => !isUUID(id));
+
+      const fetched: any[] = [];
+
+      // Fetch dummy courses
+      slugList.forEach(slug => {
+        const dummy = getCourseById(slug);
+        if (dummy && !isPurchased(dummy.id)) {
+          fetched.push({
+            id: dummy.id,
+            title: dummy.title,
+            price: dummy.price,
+            originalPrice: dummy.originalPrice,
+            thumbnail: dummy.thumbnail,
+            instructor: dummy.instructor,
+            telegramLink: dummy.telegramLink
+          });
+        }
+      });
+
+      // Fetch Supabase courses
+      if (uuidList.length > 0) {
+        const { data, error } = await supabase
+          .from("courses")
+          .select("*")
+          .in("id", uuidList);
+
+        if (!error && data) {
+          data.forEach(d => {
+            if (!isPurchased(d.id)) {
+              fetched.push({
+                id: d.id,
+                title: d.title,
+                price: d.price || 0,
+                originalPrice: d.original_price || d.price || 0,
+                thumbnail: d.thumbnail_url,
+                instructor: d.instructor_name,
+                telegramLink: d.telegram_link
+              });
+            }
+          });
+        }
+      }
+
+      setCheckoutCourses(fetched);
+      setLoading(false);
+    };
+
+    fetchCheckoutData();
+  }, [courseId, cartIds, isPurchased]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (checkoutCourses.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="font-display font-bold text-2xl text-foreground">Course not found</h1>
+          <h1 className="font-display font-bold text-2xl text-foreground">No courses to checkout</h1>
           <Link to="/courses"><Button className="mt-4">Browse Courses</Button></Link>
         </div>
       </div>
@@ -66,12 +146,15 @@ const Checkout = () => {
     );
   }
 
-  const discount = course.originalPrice - course.price;
-  const discountPercent = Math.round((discount / course.originalPrice) * 100);
-  const couponDiscount = couponApplied ? Math.floor(course.price * 0.1) : 0;
-  const maxCoins = Math.min(balance, Math.floor((course.price - couponDiscount) * 0.5));
+  const subtotal = checkoutCourses.reduce((sum, c) => sum + c.price, 0);
+  const originalSubtotal = checkoutCourses.reduce((sum, c) => sum + c.originalPrice, 0);
+  const discountAmount = originalSubtotal - subtotal;
+  const discountPercent = originalSubtotal > 0 ? Math.round((discountAmount / originalSubtotal) * 100) : 0;
+  
+  const couponDiscount = couponApplied ? Math.floor(subtotal * 0.1) : 0;
+  const maxCoins = Math.min(balance, Math.floor((subtotal - couponDiscount) * 0.5));
   const coinDiscount = useCoins ? maxCoins : 0;
-  const total = Math.max(0, course.price - couponDiscount - coinDiscount);
+  const total = Math.max(0, subtotal - couponDiscount - coinDiscount);
 
   const handleApplyCoupon = () => {
     if (coupon.trim().toUpperCase() === "CV10") {
@@ -105,16 +188,44 @@ const Checkout = () => {
 
     setProcessing(true);
     try {
+      // Only real courses (UUIDs) can be purchased in DB
+      const realCourses = checkoutCourses.filter(c => isUUID(c.id));
+      
       if (useCoins && coinDiscount > 0) {
-        await spendCoins(coinDiscount, `Discount on ${course.title}`);
+        await spendCoins(coinDiscount, `Discount on checkout`);
       }
-      const { error } = await supabase.from("purchases").insert({
-        user_id: user.id,
-        course_id: course.id,
-        price_paid: total,
-      });
-      if (error) throw error;
-      addPurchasedIds([course.id]);
+
+      if (realCourses.length > 0) {
+        const rows = realCourses.map(c => ({
+          user_id: user.id,
+          course_id: c.id,
+          price_paid: c.price - (realCourses.length > 0 ? (couponDiscount + coinDiscount) / realCourses.length : 0),
+        }));
+
+        const { error } = await supabase.from("purchases").insert(rows);
+        if (error) throw error;
+        
+        // Remove real courses from cart if checking out entire cart
+        if (!courseId) {
+          for (const c of realCourses) {
+            await removeFromCart(c.id);
+          }
+        }
+        
+        addPurchasedIds(realCourses.map(c => c.id));
+      }
+
+      // Handle dummy courses success state separately (they don't go to DB)
+      const dummyCourses = checkoutCourses.filter(c => !isUUID(c.id));
+      if (dummyCourses.length > 0) {
+        if (!courseId) {
+          for (const c of dummyCourses) {
+            await removeFromCart(c.id);
+          }
+        }
+        addPurchasedIds(dummyCourses.map(c => c.id));
+      }
+
       setSuccess(true);
     } catch (e: any) {
       toast.error(e.message || "Payment failed. Please try again.");
@@ -127,28 +238,34 @@ const Checkout = () => {
   if (success) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center space-y-6">
+        <div className="max-w-md w-full text-center space-y-6 py-12">
           <div className="bg-card border border-border rounded-2xl p-8 space-y-6">
             <div className="text-6xl">🎉</div>
             <div>
               <h1 className="font-display font-bold text-2xl text-foreground">Payment Successful!</h1>
-              <p className="text-muted-foreground mt-2">You now have access to</p>
+              <p className="text-muted-foreground mt-2">You now have access to {checkoutCourses.length} course(s)</p>
             </div>
 
-            <div className="flex items-center gap-3 bg-muted/30 rounded-lg p-3">
-              <img src={course.thumbnail} alt={course.title} className="w-16 h-11 rounded object-cover shrink-0" />
-              <p className="font-semibold text-foreground text-sm text-left line-clamp-2">{course.title}</p>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+              {checkoutCourses.map(c => (
+                <div key={c.id} className="flex items-center gap-3 bg-muted/30 rounded-lg p-3">
+                  <img src={c.thumbnail} alt={c.title} className="w-16 h-11 rounded object-cover shrink-0" />
+                  <p className="font-semibold text-foreground text-xs text-left line-clamp-2">{c.title}</p>
+                </div>
+              ))}
             </div>
 
             <div className="space-y-3">
-              <a href={course.telegramLink} target="_blank" rel="noopener noreferrer" className="block">
-                <Button size="lg" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
-                  <MessageCircle className="mr-2 h-5 w-5" /> Access Course on Telegram
-                </Button>
-              </a>
-              <Link to="/my-learning" className="block">
+              {checkoutCourses.length === 1 && checkoutCourses[0].telegramLink && (
+                <a href={checkoutCourses[0].telegramLink} target="_blank" rel="noopener noreferrer" className="block">
+                  <Button size="lg" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+                    <MessageCircle className="mr-2 h-5 w-5" /> Access Course on Telegram
+                  </Button>
+                </a>
+              )}
+              <Link to="/purchase-history" className="block">
                 <Button size="lg" variant="outline" className="w-full font-semibold">
-                  Go to My Learning
+                  View Purchase History
                 </Button>
               </Link>
             </div>
@@ -299,18 +416,22 @@ const Checkout = () => {
             {/* Order Details */}
             <div className="bg-card border border-border rounded-xl p-6">
               <h2 className="font-display font-bold text-lg text-foreground mb-4">
-                Order details <span className="text-muted-foreground font-normal text-sm">(1 course)</span>
+                Order details <span className="text-muted-foreground font-normal text-sm">({checkoutCourses.length} {checkoutCourses.length === 1 ? 'course' : 'courses'})</span>
               </h2>
-              <div className="flex gap-4 items-start">
-                <img src={course.thumbnail} alt={course.title} className="w-28 h-[4.5rem] rounded-lg object-cover shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground text-sm leading-tight line-clamp-2">{course.title}</p>
-                  <p className="text-xs text-muted-foreground mt-1">by {course.instructor}</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="font-display font-bold text-foreground">₹{course.price}</p>
-                  <p className="text-xs text-muted-foreground line-through">₹{course.originalPrice}</p>
-                </div>
+              <div className="space-y-4">
+                {checkoutCourses.map(c => (
+                  <div key={c.id} className="flex gap-4 items-start pb-4 border-b border-border last:border-0 last:pb-0">
+                    <img src={c.thumbnail} alt={c.title} className="w-28 h-[4.5rem] rounded-lg object-cover shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-foreground text-sm leading-tight line-clamp-2">{c.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">by {c.instructor}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-display font-bold text-foreground">₹{c.price}</p>
+                      <p className="text-xs text-muted-foreground line-through">₹{c.originalPrice}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -357,11 +478,11 @@ const Checkout = () => {
                 <div className="space-y-2.5 text-sm">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Original Price</span>
-                    <span>₹{course.originalPrice}</span>
+                    <span>₹{originalSubtotal}</span>
                   </div>
                   <div className="flex justify-between text-primary">
                     <span>Discount ({discountPercent}% Off)</span>
-                    <span>-₹{discount}</span>
+                    <span>-₹{discountAmount}</span>
                   </div>
                   {couponApplied && (
                     <div className="flex justify-between text-primary">
@@ -380,7 +501,7 @@ const Checkout = () => {
                 <Separator />
 
                 <div className="flex justify-between font-display font-bold text-xl text-foreground">
-                  <span>Total (1 course)</span>
+                  <span>Total ({checkoutCourses.length} {checkoutCourses.length === 1 ? 'course' : 'courses'})</span>
                   <span>₹{total}</span>
                 </div>
 
@@ -393,7 +514,7 @@ const Checkout = () => {
                   size="lg"
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base"
                   onClick={handlePayment}
-                  disabled={processing || isPurchased(course.id)}
+                  disabled={processing || checkoutCourses.every(c => isPurchased(c.id))}
                 >
                   <Lock className="mr-2 h-4 w-4" />
                   {processing ? "Processing…" : "Proceed"}

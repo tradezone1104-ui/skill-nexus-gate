@@ -75,6 +75,11 @@ const AccountSettings = () => {
     if (profile) {
       setFullName(profile.full_name || "");
       setAvatarUrl(profile.avatar_url || "");
+      setTelegramUsername(profile.telegram_username || "");
+      setUpiId(profile.upi_id || "");
+      setPaytmNumber(profile.paytm_number || "");
+      setBankAccount(profile.bank_account || "");
+      setBankIfsc(profile.bank_ifsc || "");
     }
   }, [profile]);
 
@@ -117,7 +122,10 @@ const AccountSettings = () => {
     if (!trimmed) { toast({ title: "Name cannot be empty", variant: "destructive" }); return; }
     if (trimmed.length > 100) { toast({ title: "Name must be under 100 characters", variant: "destructive" }); return; }
     setSaving(true);
-    const { error } = await supabase.from("profiles").update({ full_name: trimmed }).eq("id", user.id);
+    const { error } = await supabase.from("profiles").update({ 
+      full_name: trimmed,
+      telegram_username: telegramUsername.trim()
+    }).eq("id", user.id);
     if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
     else toast({ title: "Profile updated" });
     setSaving(false);
@@ -136,9 +144,17 @@ const AccountSettings = () => {
 
   // === Payment Handlers ===
   const handleSavePayment = async () => {
+    if (!user) return;
     setSavingPayment(true);
-    await new Promise((r) => setTimeout(r, 500));
-    toast({ title: "Payment method saved", description: "Your payout details have been updated." });
+    const { error } = await supabase.from("profiles").update({
+      upi_id: upiId.trim(),
+      paytm_number: paytmNumber.trim(),
+      bank_account: bankAccount.trim(),
+      bank_ifsc: bankIfsc.trim()
+    }).eq("id", user.id);
+    
+    if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
+    else toast({ title: "Payment details updated" });
     setSavingPayment(false);
   };
 

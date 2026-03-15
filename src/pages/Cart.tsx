@@ -11,8 +11,11 @@ import { useCvCoins } from "@/hooks/useCvCoins";
 import { getCourseById } from "@/data/courses";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+
+const isUUID = (str: string) => 
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(str);
 
 const Cart = () => {
   const { cartIds, loading, removeFromCart } = useCartContext();
@@ -23,13 +26,48 @@ const Cart = () => {
   const { balance, spendCoins } = useCvCoins();
   const [coinsToUse, setCoinsToUse] = useState(0);
 
-  const courses = Array.from(cartIds)
-    .map(getCourseById)
-    .filter(Boolean)
-    .filter((c) => !isPurchased(c!.id));
+  const fetchSupabaseCourses = async (uuids: string[]) => {
+    if (uuids.length === 0) return [];
+    const { data, error } = await supabase
+      .from("courses")
+      .select("*")
+      .in("id", uuids);
+    if (error) {
+      console.error("[Cart] Supabase fetch error:", error);
+      return [];
+    }
+    return data || [];
+  };
 
-  const totalPrice = courses.reduce((sum, c) => sum + (c?.price ?? 0), 0);
-  const totalOriginal = courses.reduce((sum, c) => sum + (c?.originalPrice ?? 0), 0);
+  const [dbCourses, setDbCourses] = useState<any[]>([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  useEffect(() => {
+    const loadDetails = async () => {
+      setLoadingCourses(true);
+      const uuids = Array.from(cartIds).filter(isUUID);
+      const data = await fetchSupabaseCourses(uuids);
+      setDbCourses(data);
+      setLoadingCourses(false);
+    };
+    if (cartIds.size > 0) {
+      loadDetails();
+    } else {
+      setDbCourses([]);
+    }
+  }, [cartIds]);
+
+  const allCourses = useMemo(() => {
+    const dummyIds = Array.from(cartIds).filter(id => !isUUID(id));
+    const dummies = dummyIds.map(getCourseById).filter(Boolean);
+    
+    // Combine dummy details with Supabase details
+    const combined = [...dummies, ...dbCourses].filter(c => !isPurchased(c.id));
+    return combined;
+  }, [cartIds, dbCourses, isPurchased]);
+
+  const totalPrice = allCourses.reduce((sum, c) => sum + (Number(c?.price) || 0), 0);
+  const totalOriginal = allCourses.reduce((sum, c) => sum + (Number(c?.original_price || c?.originalPrice) || 0), 0);
   const totalSavings = totalOriginal - totalPrice;
   const maxCoins = Math.min(balance, totalPrice);
   const finalPrice = totalPrice - coinsToUse;
@@ -41,9 +79,9 @@ const Cart = () => {
       <div className="container mx-auto px-4 py-12">
         <h1 className="font-display font-bold text-3xl text-foreground mb-8">Shopping Cart</h1>
 
-        {loading ? (
+        {loading || loadingCourses ? (
           <p className="text-muted-foreground">Loading…</p>
-        ) : courses.length === 0 ? (
+        ) : allCourses.length === 0 ? (
           <div className="bg-card rounded-xl border border-border p-12 text-center space-y-4">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto" />
             <h2 className="font-display font-semibold text-xl text-foreground">Your cart is empty</h2>
@@ -56,14 +94,14 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart items */}
             <div className="lg:col-span-2 space-y-4">
-              {courses.map((course) => (
+              {allCourses.map((course) => (
                 <div
                   key={course!.id}
                   className="bg-card rounded-xl border border-border p-4 flex gap-4 items-start"
                 >
                   <Link to={`/course/${course!.id}`} className="shrink-0">
                     <img
-                      src={course!.thumbnail}
+                      src={course!.thumbnail_url || course!.thumbnail}
                       alt={course!.title}
                       className="w-32 h-20 object-cover rounded-lg"
                     />
@@ -74,13 +112,13 @@ const Cart = () => {
                         {course!.title}
                       </h3>
                     </Link>
-                    <p className="text-xs text-muted-foreground mt-1">by {course!.instructor}</p>
-                    <p className="text-xs text-muted-foreground">{course!.duration} · {course!.lessons} lessons</p>
+                    <p className="text-xs text-muted-foreground mt-1">by {course!.instructor_name || course!.instructor}</p>
+                    <p className="text-xs text-muted-foreground">{course!.duration_hours ? `${course!.duration_hours}h` : course!.duration} · {course!.total_lectures || course!.lessons} lessons</p>
                   </div>
                   <div className="text-right shrink-0 space-y-2">
                     <div>
                       <p className="font-display font-bold text-foreground">₹{course!.price}</p>
-                      <p className="text-xs text-muted-foreground line-through">₹{course!.originalPrice}</p>
+                      <p className="text-xs text-muted-foreground line-through">₹{course!.original_price || course!.originalPrice}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -101,7 +139,7 @@ const Cart = () => {
                 <h2 className="font-display font-bold text-lg text-foreground">Order Summary</h2>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Subtotal ({courses.length} {courses.length === 1 ? "course" : "courses"})</span>
+                    <span>Subtotal ({allCourses.length} {allCourses.length === 1 ? "course" : "courses"})</span>
                     <span>₹{totalOriginal.toLocaleString()}</span>
                   </div>
                   <div className="flex justify-between text-primary font-medium">
@@ -154,36 +192,13 @@ const Cart = () => {
                 </div>
                 <Button
                   size="lg"
-                  disabled={checkingOut}
-                  onClick={async () => {
+                  onClick={() => {
                     if (!user) { navigate("/login"); return; }
-                    setCheckingOut(true);
-                    try {
-                      // Spend coins first if any
-                      if (coinsToUse > 0) {
-                        const ok = await spendCoins(coinsToUse, `Checkout discount on ${courses.length} course(s)`);
-                        if (!ok) throw new Error("Failed to apply CV Coins");
-                      }
-                      const rows = courses.map((c) => ({
-                        user_id: user.id,
-                        course_id: c!.id,
-                        price_paid: c!.price - (coinsToUse / courses.length),
-                      }));
-                      const { error } = await supabase.from("purchases").insert(rows);
-                      if (error) throw error;
-                      for (const c of courses) await removeFromCart(c!.id);
-                      addPurchasedIds(courses.map((c) => c!.id));
-                      toast.success("Purchase complete! 🎉");
-                      navigate("/purchase-history");
-                    } catch (e: any) {
-                      toast.error(e.message || "Checkout failed");
-                    } finally {
-                      setCheckingOut(false);
-                    }
+                    navigate("/checkout");
                   }}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
                 >
-                  {checkingOut ? "Processing…" : "Proceed to Checkout"}
+                  Proceed to Checkout
                 </Button>
                 <p className="text-xs text-muted-foreground text-center">30-day money-back guarantee</p>
               </div>

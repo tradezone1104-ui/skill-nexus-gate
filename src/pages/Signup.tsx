@@ -60,7 +60,7 @@ const Signup = () => {
 
   const handleGoogleSignup = async () => {
     const { error } = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirectTo: window.location.origin,
     });
 
     if (error) {

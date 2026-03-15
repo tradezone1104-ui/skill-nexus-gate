@@ -75,7 +75,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
         { onConflict: "user_id" }
       )
       .select()
-      .single();
+      .maybeSingle();
 
     if (!error && data) {
       setSubscription(data as Subscription);
