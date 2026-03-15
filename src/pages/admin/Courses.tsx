@@ -34,18 +34,20 @@ const CAT_COLORS: Record<string, string> = {
 
 interface CourseForm {
   title: string; short_description: string; description: string; category: string;
-  instructor_name: string; instructor_bio: string; price: number; original_price: number;
+  subcategory: string;
+  instructor_name: string; instructor_bio: string; price: string; original_price: string;
   thumbnail_url: string; telegram_link: string; level: string; language: string;
-  duration_hours: number; total_lectures: number; rating: number; total_students: number;
+  duration_hours: string; total_lectures: string; rating: string; total_students: string;
   is_featured: boolean; is_free: boolean; is_published: boolean;
   what_you_learn: string[]; requirements: string[]; tags: string[];
 }
 
 const emptyForm: CourseForm = {
   title: "", short_description: "", description: "", category: CATEGORIES[0],
-  instructor_name: "", instructor_bio: "", price: 0, original_price: 0,
+  subcategory: "",
+  instructor_name: "", instructor_bio: "", price: "", original_price: "",
   thumbnail_url: "", telegram_link: "", level: "Beginner", language: "Hindi",
-  duration_hours: 0, total_lectures: 0, rating: 0, total_students: 0,
+  duration_hours: "", total_lectures: "", rating: "", total_students: "",
   is_featured: false, is_free: false, is_published: false,
   what_you_learn: [], requirements: [], tags: [],
 };
@@ -69,19 +71,14 @@ export default function AdminCourses() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [toggling, setToggling] = useState<string | null>(null);
 
-  // Thumbnail mode
   const [thumbMode, setThumbMode] = useState<"url" | "upload">("url");
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Tags chip input
   const [tagInput, setTagInput] = useState("");
-
-  // Dynamic list inputs
   const [learnInput, setLearnInput] = useState("");
   const [reqInput, setReqInput] = useState("");
 
-  // CSV
   const [csvOpen, setCsvOpen] = useState(false);
   const [csvData, setCsvData] = useState<any[]>([]);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
@@ -119,13 +116,16 @@ export default function AdminCourses() {
     setEditId(c.id);
     setForm({
       title: c.title || "", short_description: c.short_description || "", description: c.description || "",
-      category: c.category || CATEGORIES[0], instructor_name: c.instructor_name || "",
-      instructor_bio: c.instructor_bio || "",
-      price: c.price || 0, original_price: c.original_price || 0,
+      category: c.category || CATEGORIES[0], subcategory: c.subcategory || "",
+      instructor_name: c.instructor_name || "", instructor_bio: c.instructor_bio || "",
+      price: c.price != null && c.price !== 0 ? String(c.price) : "",
+      original_price: c.original_price != null && c.original_price !== 0 ? String(c.original_price) : "",
       thumbnail_url: c.thumbnail_url || "", telegram_link: c.telegram_link || "",
       level: c.level || "Beginner", language: c.language || "Hindi",
-      duration_hours: c.duration_hours || 0, total_lectures: c.total_lectures || 0,
-      rating: c.rating || 0, total_students: c.total_students || 0,
+      duration_hours: c.duration_hours != null && c.duration_hours !== 0 ? String(c.duration_hours) : "",
+      total_lectures: c.total_lectures != null && c.total_lectures !== 0 ? String(c.total_lectures) : "",
+      rating: c.rating != null && c.rating !== 0 ? String(c.rating) : "",
+      total_students: c.total_students != null && c.total_students !== 0 ? String(c.total_students) : "",
       is_featured: !!c.is_featured, is_free: !!c.is_free, is_published: !!c.is_published,
       what_you_learn: c.what_you_learn || [], requirements: c.requirements || [], tags: c.tags || [],
     });
@@ -134,16 +134,42 @@ export default function AdminCourses() {
     setFormOpen(true);
   };
 
+  const buildPayload = (f: CourseForm) => ({
+    title: f.title,
+    short_description: f.short_description,
+    description: f.description,
+    category: f.category,
+    subcategory: f.subcategory || null,
+    instructor_name: f.instructor_name,
+    instructor_bio: f.instructor_bio,
+    price: f.price !== "" ? Number(f.price) : null,
+    original_price: f.original_price !== "" ? Number(f.original_price) : null,
+    thumbnail_url: f.thumbnail_url,
+    telegram_link: f.telegram_link,
+    level: f.level,
+    language: f.language,
+    duration_hours: f.duration_hours !== "" ? Number(f.duration_hours) : null,
+    total_lectures: f.total_lectures !== "" ? Number(f.total_lectures) : null,
+    rating: f.rating !== "" ? Number(f.rating) : null,
+    total_students: f.total_students !== "" ? Number(f.total_students) : null,
+    is_featured: f.is_featured,
+    is_free: f.is_free,
+    is_published: f.is_published,
+    what_you_learn: f.what_you_learn,
+    requirements: f.requirements,
+    tags: f.tags,
+  });
+
   const handleSave = async () => {
     if (!form.title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
     setSaving(true);
-    const payload = { ...form };
+    const payload = buildPayload(form);
     if (editId) {
-      const { error } = await supabase.from("courses").update(payload).eq("id", editId);
+      const { error } = await supabase.from("courses").update(payload as any).eq("id", editId);
       if (error) toast({ title: "Error updating course", description: error.message, variant: "destructive" });
       else toast({ title: "Course updated successfully" });
     } else {
-      const { error } = await supabase.from("courses").insert(payload);
+      const { error } = await supabase.from("courses").insert(payload as any);
       if (error) toast({ title: "Error adding course", description: error.message, variant: "destructive" });
       else toast({ title: "Course added successfully" });
     }
@@ -180,20 +206,29 @@ export default function AdminCourses() {
     setToggling(null);
   };
 
-  // Thumbnail upload
+  // Thumbnail upload — uses course-thumbnails bucket
   const handleThumbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      toast({ title: "Invalid file type", description: "Only JPG, PNG, WEBP allowed", variant: "destructive" });
+      return;
+    }
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `course-thumbs/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file);
-    if (error) { toast({ title: "Upload failed", description: error.message, variant: "destructive" }); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("course-thumbnails").upload(path, file);
+    if (error) {
+      toast({ title: "Image upload failed", description: "Please try URL instead", variant: "destructive" });
+      setUploading(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("course-thumbnails").getPublicUrl(path);
     setForm(f => ({ ...f, thumbnail_url: urlData.publicUrl }));
+    toast({ title: "Image uploaded successfully" });
     setUploading(false);
   };
 
-  // Tags chip handlers
   const addTag = (val: string) => {
     const tag = val.trim();
     if (tag && !form.tags.includes(tag)) setForm(f => ({ ...f, tags: [...f.tags, tag] }));
@@ -211,9 +246,9 @@ export default function AdminCourses() {
 
   // CSV
   const exportCSV = () => {
-    const header = "title,category,instructor_name,price,original_price,level,rating,total_students,is_published,is_featured\n";
+    const header = "title,category,subcategory,instructor_name,price,original_price,level,rating,total_students,is_published,is_featured\n";
     const rows = courses.map(c =>
-      `"${c.title}","${c.category}","${c.instructor_name}",${c.price},${c.original_price},"${c.level}",${c.rating},${c.total_students},${c.is_published},${c.is_featured}`
+      `"${c.title}","${c.category || ''}","${c.subcategory || ''}","${c.instructor_name || ''}",${c.price ?? ''},${c.original_price ?? ''},"${c.level || ''}",${c.rating ?? ''},${c.total_students ?? ''},${c.is_published ?? false},${c.is_featured ?? false}`
     ).join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "courses.csv"; a.click();
@@ -232,19 +267,29 @@ export default function AdminCourses() {
         const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
         const obj: any = {};
         headers.forEach((h, i) => { obj[h] = vals[i] || ""; });
-        if (!obj.title) errors.push(`Row ${idx + 2}: Missing title`);
-        if (obj.price) obj.price = Number(obj.price) || 0;
-        if (obj.original_price) obj.original_price = Number(obj.original_price) || 0;
-        if (obj.duration_hours) obj.duration_hours = Number(obj.duration_hours) || 0;
-        if (obj.total_lectures) obj.total_lectures = Number(obj.total_lectures) || 0;
-        if (obj.rating) obj.rating = Number(obj.rating) || 0;
-        if (obj.total_students) obj.total_students = Number(obj.total_students) || 0;
-        if (obj.is_free) obj.is_free = obj.is_free === "true";
-        if (obj.is_featured) obj.is_featured = obj.is_featured === "true";
-        if (obj.is_published) obj.is_published = obj.is_published === "true";
-        if (obj.tags) obj.tags = obj.tags.split(";").map((t: string) => t.trim());
-        if (obj.what_you_learn) obj.what_you_learn = obj.what_you_learn.split(";").map((t: string) => t.trim());
-        if (obj.requirements) obj.requirements = obj.requirements.split(";").map((t: string) => t.trim());
+        if (!obj.title) errors.push(`Row ${idx + 2}: Title is required`);
+        // Number fields: empty/missing → null, not 0
+        obj.price = obj.price !== "" ? (Number(obj.price) || null) : null;
+        obj.original_price = obj.original_price !== "" ? (Number(obj.original_price) || null) : null;
+        obj.duration_hours = obj.duration_hours !== "" ? (Number(obj.duration_hours) || null) : null;
+        obj.total_lectures = obj.total_lectures !== "" ? (Number(obj.total_lectures) || null) : null;
+        obj.rating = obj.rating !== "" ? (Number(obj.rating) || null) : null;
+        obj.total_students = obj.total_students !== "" ? (Number(obj.total_students) || null) : null;
+        // Boolean fields: default to false
+        obj.is_free = obj.is_free === "true";
+        obj.is_featured = obj.is_featured === "true";
+        obj.is_published = obj.is_published === "true";
+        if (obj.tags && typeof obj.tags === "string") obj.tags = obj.tags.split(";").map((t: string) => t.trim()).filter(Boolean);
+        else obj.tags = null;
+        if (obj.what_you_learn && typeof obj.what_you_learn === "string") obj.what_you_learn = obj.what_you_learn.split(";").map((t: string) => t.trim()).filter(Boolean);
+        else obj.what_you_learn = null;
+        if (obj.requirements && typeof obj.requirements === "string") obj.requirements = obj.requirements.split(";").map((t: string) => t.trim()).filter(Boolean);
+        else obj.requirements = null;
+        // Clean empty strings to null for optional text fields
+        if (!obj.category) obj.category = null;
+        if (!obj.subcategory) obj.subcategory = null;
+        if (!obj.instructor_name) obj.instructor_name = null;
+        if (!obj.level) obj.level = null;
         return obj;
       });
       setCsvErrors(errors);
@@ -255,16 +300,18 @@ export default function AdminCourses() {
 
   const importCSV = async () => {
     setCsvImporting(true);
-    const { error } = await supabase.from("courses").insert(csvData.map(r => ({ ...r, title: r.title || "Untitled" })));
+    const cleaned = csvData.map(r => ({ ...r, title: r.title || "Untitled" }));
+    const { error } = await supabase.from("courses").insert(cleaned);
     if (error) toast({ title: "Import failed", description: error.message, variant: "destructive" });
     else toast({ title: `${csvData.length} courses imported successfully` });
     setCsvImporting(false); setCsvOpen(false); setCsvData([]); setCsvErrors([]);
     fetchCourses();
   };
 
-  const discount = form.original_price > 0 ? Math.round(((form.original_price - form.price) / form.original_price) * 100) : 0;
+  const priceNum = form.price !== "" ? Number(form.price) : 0;
+  const origNum = form.original_price !== "" ? Number(form.original_price) : 0;
+  const discount = origNum > 0 ? Math.round(((origNum - priceNum) / origNum) * 100) : 0;
 
-  // Section heading component
   const SectionHeading = ({ title }: { title: string }) => (
     <div className="border-b border-[#334155] pb-1 mb-3 mt-4 first:mt-0">
       <h3 className="text-sm font-semibold text-green-400 uppercase tracking-wider">{title}</h3>
@@ -341,15 +388,20 @@ export default function AdminCourses() {
                       )}
                     </TableCell>
                     <TableCell><span className="font-medium text-sm whitespace-normal break-words max-w-[200px] block">{c.title}</span></TableCell>
-                    <TableCell><Badge className={`text-xs ${CAT_COLORS[c.category] || "bg-secondary/20 text-secondary"}`}>{c.category}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge className={`text-xs ${CAT_COLORS[c.category] || "bg-secondary/20 text-secondary"}`}>{c.category}</Badge>
+                        {c.subcategory && <span className="text-[10px] text-muted-foreground">{c.subcategory}</span>}
+                      </div>
+                    </TableCell>
                     <TableCell className="text-sm">{c.instructor_name}</TableCell>
                     <TableCell>
                       {c.is_free ? (
                         <Badge className="bg-green-500/20 text-green-400">Free</Badge>
                       ) : (
                         <div className="text-sm">
-                          <span className="font-semibold">₹{c.price}</span>
-                          {c.original_price > 0 && c.original_price !== c.price && (
+                          <span className="font-semibold">₹{c.price ?? 0}</span>
+                          {c.original_price != null && c.original_price > 0 && c.original_price !== c.price && (
                             <span className="text-muted-foreground line-through ml-1 text-xs">₹{c.original_price}</span>
                           )}
                         </div>
@@ -363,22 +415,14 @@ export default function AdminCourses() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() => toggleField(c.id, "is_published", c.is_published)}
-                        disabled={toggling === c.id + "is_published"}
-                        className="cursor-pointer"
-                      >
+                      <button onClick={() => toggleField(c.id, "is_published", c.is_published)} disabled={toggling === c.id + "is_published"} className="cursor-pointer">
                         <Badge className={`text-xs transition-colors ${c.is_published ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : "bg-red-500/20 text-red-400 hover:bg-red-500/30"}`}>
                           {toggling === c.id + "is_published" ? <Loader2 className="h-3 w-3 animate-spin" /> : (c.is_published ? "Published" : "Draft")}
                         </Badge>
                       </button>
                     </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() => toggleField(c.id, "is_featured", c.is_featured)}
-                        disabled={toggling === c.id + "is_featured"}
-                        className="cursor-pointer"
-                      >
+                      <button onClick={() => toggleField(c.id, "is_featured", c.is_featured)} disabled={toggling === c.id + "is_featured"} className="cursor-pointer">
                         <Badge className={`text-xs transition-colors ${c.is_featured ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30" : "bg-[#334155]/50 text-muted-foreground hover:bg-[#334155]"}`}>
                           {toggling === c.id + "is_featured" ? <Loader2 className="h-3 w-3 animate-spin" /> : (c.is_featured ? "Yes" : "No")}
                         </Badge>
@@ -439,6 +483,10 @@ export default function AdminCourses() {
                 </Select>
               </div>
               <div className="space-y-1.5">
+                <Label>Subcategory</Label>
+                <Input value={form.subcategory} onChange={e => setForm(f => ({ ...f, subcategory: e.target.value }))} placeholder="e.g. Candlestick Patterns" className="bg-[#0F172A] border-[#334155]" />
+              </div>
+              <div className="space-y-1.5">
                 <Label>Level</Label>
                 <Select value={form.level} onValueChange={v => setForm(f => ({ ...f, level: v }))}>
                   <SelectTrigger className="bg-[#0F172A] border-[#334155]"><SelectValue /></SelectTrigger>
@@ -460,11 +508,11 @@ export default function AdminCourses() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Selling Price (₹)</Label>
-                <Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} placeholder="e.g. 499" className="bg-[#0F172A] border-[#334155]" />
               </div>
               <div className="space-y-1.5">
                 <Label>Original Price (₹) {discount > 0 && <span className="text-green-400 ml-1 text-xs">{discount}% off</span>}</Label>
-                <Input type="number" value={form.original_price} onChange={e => setForm(f => ({ ...f, original_price: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" value={form.original_price} onChange={e => setForm(f => ({ ...f, original_price: e.target.value }))} placeholder="e.g. 1999" className="bg-[#0F172A] border-[#334155]" />
               </div>
             </div>
 
@@ -473,20 +521,20 @@ export default function AdminCourses() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Duration (hours)</Label>
-                <Input type="number" value={form.duration_hours} onChange={e => setForm(f => ({ ...f, duration_hours: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" value={form.duration_hours} onChange={e => setForm(f => ({ ...f, duration_hours: e.target.value }))} placeholder="e.g. 8.5" className="bg-[#0F172A] border-[#334155]" />
               </div>
               <div className="space-y-1.5">
                 <Label>Total Lectures</Label>
-                <Input type="number" value={form.total_lectures} onChange={e => setForm(f => ({ ...f, total_lectures: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" value={form.total_lectures} onChange={e => setForm(f => ({ ...f, total_lectures: e.target.value }))} placeholder="e.g. 42" className="bg-[#0F172A] border-[#334155]" />
               </div>
               <div className="space-y-1.5">
                 <Label>Rating (0-5)</Label>
-                <Input type="number" min={0} max={5} step={0.1} value={form.rating} onChange={e => setForm(f => ({ ...f, rating: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" min={0} max={5} step={0.1} value={form.rating} onChange={e => setForm(f => ({ ...f, rating: e.target.value }))} placeholder="e.g. 4.7" className="bg-[#0F172A] border-[#334155]" />
                 <p className="text-xs text-muted-foreground">Auto-updates when users rate</p>
               </div>
               <div className="space-y-1.5">
                 <Label>Students Count</Label>
-                <Input type="number" min={0} value={form.total_students} onChange={e => setForm(f => ({ ...f, total_students: Number(e.target.value) }))} className="bg-[#0F172A] border-[#334155]" />
+                <Input type="number" min={0} value={form.total_students} onChange={e => setForm(f => ({ ...f, total_students: e.target.value }))} placeholder="e.g. 1000" className="bg-[#0F172A] border-[#334155]" />
                 <p className="text-xs text-muted-foreground">Auto-updates when users purchase</p>
               </div>
             </div>
@@ -504,7 +552,7 @@ export default function AdminCourses() {
               </div>
               {thumbMode === "upload" ? (
                 <div className="space-y-2">
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleThumbUpload} className="hidden" />
+                  <input ref={fileRef} type="file" accept=".jpg,.jpeg,.png,.webp" onChange={handleThumbUpload} className="hidden" />
                   <Button type="button" variant="outline" className="border-[#334155] gap-2" onClick={() => fileRef.current?.click()} disabled={uploading}>
                     {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                     {uploading ? "Uploading..." : "Choose File"}
@@ -542,7 +590,6 @@ export default function AdminCourses() {
 
             {/* Section 7: Tags & Learning */}
             <SectionHeading title="Tags & Learning" />
-            {/* Tags chips */}
             <div className="space-y-1.5">
               <Label>Tags</Label>
               <div className="flex flex-wrap gap-1.5 p-2 bg-[#0F172A] border border-[#334155] rounded-md min-h-[40px] items-center">
@@ -562,7 +609,6 @@ export default function AdminCourses() {
               </div>
             </div>
 
-            {/* What you'll learn - dynamic list */}
             <div className="space-y-1.5">
               <Label>What You'll Learn</Label>
               <div className="space-y-2">
@@ -585,7 +631,6 @@ export default function AdminCourses() {
               </div>
             </div>
 
-            {/* Requirements - dynamic list */}
             <div className="space-y-1.5">
               <Label>Requirements</Label>
               <div className="space-y-2">
@@ -672,12 +717,12 @@ export default function AdminCourses() {
                     </TableHeader>
                     <TableBody>
                       {csvData.slice(0, 5).map((r, i) => (
-                        <TableRow key={i} className="border-[#334155]">
+                        <TableRow key={i} className={`border-[#334155] ${!r.title ? "bg-red-500/10" : ""}`}>
                           <TableCell className="text-xs">{i + 1}</TableCell>
                           <TableCell className="text-sm font-medium">{r.title || <span className="text-red-400">Missing</span>}</TableCell>
                           <TableCell className="text-sm">{r.category || "—"}</TableCell>
                           <TableCell className="text-sm">{r.instructor_name || "—"}</TableCell>
-                          <TableCell className="text-sm">₹{r.price || 0}</TableCell>
+                          <TableCell className="text-sm">{r.price != null ? `₹${r.price}` : "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
