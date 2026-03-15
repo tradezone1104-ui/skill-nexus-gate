@@ -54,6 +54,7 @@ export type Database = {
           rating: number | null
           requirements: string[] | null
           short_description: string | null
+          subcategory: string | null
           tags: string[] | null
           telegram_link: string | null
           thumbnail_url: string | null
@@ -82,6 +83,7 @@ export type Database = {
           rating?: number | null
           requirements?: string[] | null
           short_description?: string | null
+          subcategory?: string | null
           tags?: string[] | null
           telegram_link?: string | null
           thumbnail_url?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           rating?: number | null
           requirements?: string[] | null
           short_description?: string | null
+          subcategory?: string | null
           tags?: string[] | null
           telegram_link?: string | null
           thumbnail_url?: string | null
