@@ -11,7 +11,7 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useNotifications } from "@/contexts/NotificationContext";
 
 const profileMenuItems = [
-  { label: "Course List", to: "/course-list" },
+  { label: "Course List", to: "/courses" },
   { divider: true },
   { section: "Learning" },
   { label: "My Learning", to: "/my-learning" },

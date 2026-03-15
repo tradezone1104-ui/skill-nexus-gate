@@ -2,7 +2,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Star, Users, Clock, BookOpen, CheckCircle, MessageCircle, Heart,
   ShoppingCart, Play, ChevronDown, ChevronUp, Globe, Calendar, Award,
-  Shield, Lock, Timer, Gift, Share2, Crown, Tag, Loader2
+  Shield, Lock, Timer, Gift, Share2, Crown, Tag, Loader2, ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import CourseReviews from "@/components/CourseReviews";
+import CourseCard from "@/components/CourseCard";
 import CategoryBar from "@/components/CategoryBar";
 import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
@@ -25,7 +26,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { getCourseById } from "@/data/courses";
+import { getCourseById, courses as localCourses } from "@/data/courses";
 
 type Course = Tables<"courses">;
 
@@ -97,8 +98,32 @@ const CourseDetail = () => {
 
   const [course, setCourse] = useState<any | null>(null);
   const [courseSections, setCourseSections] = useState<any[]>([]);
+  const [mentorCourses, setMentorCourses] = useState<any[]>([]);
+  const [relatedCourses, setRelatedCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // Map a Supabase course row to the frontend Course type
+  const mapDbCourse = (row: any) => ({
+    id: row.id,
+    title: row.title || "Untitled",
+    description: row.short_description || row.description || "",
+    longDescription: row.description || "",
+    price: Number(row.price) || 0,
+    originalPrice: Number(row.original_price) || Number(row.price) || 0,
+    category: row.category || "Trading",
+    subcategory: row.subcategory || "",
+    instructor: row.instructor_name || "Unknown",
+    rating: Number(row.rating) || 0,
+    students: Number(row.total_students) || 0,
+    duration: row.duration_hours ? `${row.duration_hours}h` : "0h",
+    lessons: Number(row.total_lectures) || 0,
+    level: (row.level) || "Beginner",
+    thumbnail: row.thumbnail_url || "/placeholder.svg",
+    tags: row.tags || [],
+    telegramLink: row.telegram_link || "",
+    featured: !!row.is_featured,
+  });
 
   useEffect(() => {
     if (!id) { setNotFound(true); setLoading(false); return; }
@@ -134,6 +159,10 @@ const CourseDetail = () => {
             is_published: true
           });
           setCourseSections([]); // Dummy courses don't have real sections
+          
+          // Fetch recommendations for dummy courses based on category/instructor
+          fetchRecommendations(dummyCourse.category, dummyCourse.instructor, id);
+          
           setLoading(false);
           return;
         }
@@ -153,6 +182,7 @@ const CourseDetail = () => {
       }
 
       setCourse(courseData);
+      fetchRecommendations(courseData.category, courseData.instructor_name, id);
 
       // Fetch sections for this course
       const { data: sectionsData } = await supabase
@@ -187,6 +217,50 @@ const CourseDetail = () => {
         setCourseSections(mappedSections);
       }
       setLoading(false);
+    };
+
+    const fetchRecommendations = async (category: string, instructor: string, currentId: string) => {
+      // 1. More from this Mentor
+      if (instructor) {
+        // Fetch from Supabase
+        const { data: dbMentorData } = await supabase
+          .from("courses")
+          .select("*")
+          .eq("instructor_name", instructor)
+          .eq("is_published", true)
+          .neq("id", currentId)
+          .limit(4);
+        
+        const dbMentorMapped = dbMentorData ? dbMentorData.map(mapDbCourse) : [];
+        
+        // Fetch from local data if we need more
+        const localMentorData = localCourses
+          .filter(c => c.instructor === instructor && c.id !== currentId)
+          .slice(0, 4 - dbMentorMapped.length);
+        
+        setMentorCourses([...dbMentorMapped, ...localMentorData]);
+      }
+
+      // 2. Students Also Bought (Related by Category)
+      if (category) {
+        // Fetch from Supabase
+        const { data: dbRelatedData } = await supabase
+          .from("courses")
+          .select("*")
+          .eq("category", category)
+          .eq("is_published", true)
+          .neq("id", currentId)
+          .limit(4);
+        
+        const dbRelatedMapped = dbRelatedData ? dbRelatedData.map(mapDbCourse) : [];
+        
+        // Fetch from local data if we need more
+        const localRelatedData = localCourses
+          .filter(c => c.category === category && c.id !== currentId)
+          .slice(0, 4 - dbRelatedMapped.length);
+          
+        setRelatedCourses([...dbRelatedMapped, ...localRelatedData]);
+      }
     };
 
     fetchData();
@@ -646,6 +720,53 @@ const CourseDetail = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Recommended Sections */}
+      <div className="container mx-auto px-4 pb-20 space-y-16">
+        {/* Section 1: More from this Mentor */}
+        {mentorCourses.length > 0 && (
+          <RevealSection>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-foreground">More from this Mentor</h2>
+                <p className="text-muted-foreground text-sm mt-1">Check out other courses by {course.instructor_name}</p>
+              </div>
+              <Link to={`/courses?instructor=${encodeURIComponent(course.instructor_name)}`}>
+                <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1 text-sm font-semibold">
+                  View All <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {mentorCourses.map((c) => (
+                <CourseCard key={c.id} course={c} />
+              ))}
+            </div>
+          </RevealSection>
+        )}
+
+        {/* Section 2: Students Also Bought */}
+        {relatedCourses.length > 0 && (
+          <RevealSection>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="font-display font-bold text-2xl text-foreground">Students Also Bought</h2>
+                <p className="text-muted-foreground text-sm mt-1">Recommended courses in {course.category}</p>
+              </div>
+              <Link to={`/courses?category=${encodeURIComponent(course.category)}`}>
+                <Button variant="ghost" className="text-primary hover:text-primary/80 gap-1 text-sm font-semibold">
+                  View All <ChevronRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {relatedCourses.map((c) => (
+                <CourseCard key={c.id} course={c} />
+              ))}
+            </div>
+          </RevealSection>
+        )}
       </div>
 
       {/* Mobile sticky bottom bar */}

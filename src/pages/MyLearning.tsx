@@ -1,7 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  GraduationCap,
   Clock,
   BookOpen,
   Heart,
@@ -10,6 +9,7 @@ import {
   Play,
   ArrowRight,
   MessageCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import { useWishlistContext } from "@/contexts/WishlistContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCourseById, courses, Course } from "@/data/courses";
+import { supabase } from "@/integrations/supabase/client";
 
 // Simulated progress data (would come from DB in production)
 const getProgress = (courseId: string) => {
@@ -130,11 +131,72 @@ const MyLearning = () => {
   const { purchasedIds } = usePurchaseContext();
   const { wishlistIds } = useWishlistContext();
   const { isSubscribed } = useSubscription();
+  const [purchasedCourses, setPurchasedCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const purchasedCourses = useMemo(
-    () => Array.from(purchasedIds).map(getCourseById).filter(Boolean) as Course[],
-    [purchasedIds]
-  );
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchPurchasedCourses = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("purchases")
+        .select(`
+          course_id,
+          courses (
+            id,
+            title,
+            description,
+            short_description,
+            instructor_name,
+            thumbnail_url,
+            price,
+            original_price,
+            category,
+            duration_hours,
+            total_lectures,
+            level,
+            telegram_link
+          )
+        `)
+        .eq("user_id", user.id);
+
+      const dbFetchedCourses = (data || []).map((p: any) => {
+        const c = p.courses;
+        if (!c) return null;
+        return {
+          id: c.id,
+          title: c.title,
+          instructor: c.instructor_name || "Unknown Instructor",
+          thumbnail: c.thumbnail_url || "/placeholder.svg",
+          price: Number(c.price) || 0,
+          originalPrice: Number(c.original_price) || Number(c.price) || 0,
+          category: c.category || "Trading",
+          duration: c.duration_hours ? `${c.duration_hours}h` : "0h",
+          lessons: Number(c.total_lectures) || 0,
+          level: c.level || "Beginner",
+          description: c.short_description || c.description || "",
+          longDescription: c.description || "",
+          telegramLink: c.telegram_link,
+        } as Course;
+      }).filter(Boolean) as Course[];
+
+      // Handle dummy courses from context (slug-based IDs)
+      const dbCourseIds = new Set(dbFetchedCourses.map(c => c.id));
+      const dummyPurchased = Array.from(purchasedIds)
+        .filter(id => !dbCourseIds.has(id))
+        .map(getCourseById)
+        .filter(Boolean) as Course[];
+      
+      setPurchasedCourses([...dbFetchedCourses, ...dummyPurchased]);
+      setLoading(false);
+    };
+
+    fetchPurchasedCourses();
+  }, [user, purchasedIds]);
 
   const wishlistCourses = useMemo(
     () => Array.from(wishlistIds).map(getCourseById).filter(Boolean) as Course[],
@@ -153,13 +215,13 @@ const MyLearning = () => {
     [isSubscribed]
   );
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
         <CategoryBar />
-        <div className="container mx-auto px-4 py-12">
-          <p className="text-muted-foreground">Loading…</p>
+        <div className="container mx-auto px-4 py-20 flex items-center justify-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary" />
         </div>
         <Footer />
       </div>
@@ -183,21 +245,18 @@ const MyLearning = () => {
         {hasNoCourses ? (
           /* Empty State */
           <div className="bg-card rounded-2xl border border-border p-14 text-center space-y-5">
-            <GraduationCap className="h-16 w-16 text-muted-foreground mx-auto" />
+            <BookOpen className="h-16 w-16 text-muted-foreground mx-auto" />
             <h2 className="font-display font-semibold text-xl text-foreground">
-              You haven't started learning yet.
+              No courses purchased yet
             </h2>
             <p className="text-muted-foreground max-w-md mx-auto">
-              Start learning by purchasing your first course or subscribing to Premium.
+              Start learning today — browse our courses and find something you love!
             </p>
             <div className="flex gap-3 justify-center">
               <Link to="/courses">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-                  Explore Courses
+                  Browse Courses
                 </Button>
-              </Link>
-              <Link to="/subscribe">
-                <Button variant="outline">Subscribe</Button>
               </Link>
             </div>
           </div>

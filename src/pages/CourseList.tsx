@@ -1,19 +1,37 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { courses } from "@/data/courses";
+import { courses as staticCourses } from "@/data/courses";
+import { supabase } from "@/integrations/supabase/client";
 
 const CourseList = () => {
   const [search, setSearch] = useState("");
+  const [dbCourses, setDbCourses] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      const { data } = await supabase
+        .from("courses")
+        .select("id, title")
+        .eq("is_published", true);
+      if (data) setDbCourses(data);
+    };
+    fetchCourses();
+  }, []);
+
+  const allCourses = useMemo(() => {
+    const dbIds = new Set(dbCourses.map(c => c.id));
+    return [...dbCourses, ...staticCourses.filter(c => !dbIds.has(c.id))];
+  }, [dbCourses]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return courses;
-    return courses.filter((c) => c.title.toLowerCase().includes(q));
-  }, [search]);
+    if (!q) return allCourses;
+    return allCourses.filter((c) => c.title.toLowerCase().includes(q));
+  }, [search, allCourses]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
