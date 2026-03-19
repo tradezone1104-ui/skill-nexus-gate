@@ -37,7 +37,7 @@ export type Database = {
       }
       courses: {
         Row: {
-          category: string | null
+          category: string[] | null
           created_at: string | null
           description: string | null
           duration_hours: number | null
@@ -54,7 +54,7 @@ export type Database = {
           rating: number | null
           requirements: string[] | null
           short_description: string | null
-          subcategory: string | null
+          subcategory: string[] | null
           tags: string[] | null
           telegram_link: string | null
           thumbnail_url: string | null
@@ -66,7 +66,7 @@ export type Database = {
           what_you_learn: string[] | null
         }
         Insert: {
-          category?: string | null
+          category?: string[] | null
           created_at?: string | null
           description?: string | null
           duration_hours?: number | null
@@ -83,7 +83,7 @@ export type Database = {
           rating?: number | null
           requirements?: string[] | null
           short_description?: string | null
-          subcategory?: string | null
+          subcategory?: string[] | null
           tags?: string[] | null
           telegram_link?: string | null
           thumbnail_url?: string | null
@@ -95,7 +95,7 @@ export type Database = {
           what_you_learn?: string[] | null
         }
         Update: {
-          category?: string | null
+          category?: string[] | null
           created_at?: string | null
           description?: string | null
           duration_hours?: number | null
@@ -112,7 +112,7 @@ export type Database = {
           rating?: number | null
           requirements?: string[] | null
           short_description?: string | null
-          subcategory?: string | null
+          subcategory?: string[] | null
           tags?: string[] | null
           telegram_link?: string | null
           thumbnail_url?: string | null

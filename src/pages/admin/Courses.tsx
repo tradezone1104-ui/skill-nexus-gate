@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,13 +12,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Star, Plus, Pencil, Trash2, ExternalLink, Download, Upload, X, Loader2, Copy, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
+import { Search, Star, Plus, Pencil, Trash2, ExternalLink, Download, Upload, X, Loader2, Copy, Image as ImageIcon, Link as LinkIcon, CheckSquare, EyeOff, Eye, TrendingUp, Users, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const CATEGORIES = [
   "Trading", "Options", "Investing", "Technical Analysis",
   "Price Action/SMC", "Indicators & Tools", "Crypto & Forex", "Algo & AI Skills"
 ];
+
+const SUBCATEGORY_MAP: Record<string, string[]> = {
+  "Trading": ["Intraday Trading", "Swing Trading", "Positional Trading", "Price Action", "Algo Trading", "Scalping", "F&O Trading"],
+  "Options": ["Options Basics", "Options Strategies", "Option Chain Analysis", "Greeks", "Hedging Strategies", "Iron Condor", "Bull Call Spread"],
+  "Investing": ["Stock Market Basics", "Fundamental Analysis", "IPO & NFO", "Portfolio Management", "Sector Analysis", "Value Investing", "Dividend Investing"],
+  "Technical Analysis": ["Candlestick Patterns", "Chart Patterns", "Support & Resistance", "Moving Averages", "RSI & MACD", "Elliott Wave", "Fibonacci"],
+  "Price Action/SMC": ["Smart Money Concepts", "Order Blocks", "Fair Value Gaps", "ICT Concepts", "Liquidity Zones", "Break of Structure"],
+  "Indicators & Tools": ["TradingView", "Screeners", "Scanners", "Amibroker", "Python for Trading", "Excel for Trading"],
+  "Crypto & Forex": ["Crypto Basics", "Bitcoin & Altcoins", "DeFi", "NFT", "Forex Basics", "Currency Pairs", "MT4/MT5 Platform"],
+  "Algo & AI Skills": ["Python Basics", "Algo Trading", "Backtesting", "AI in Trading", "Quantitative Trading"],
+};
 const LEVELS = ["Beginner", "Intermediate", "Advanced"];
 
 const DEFAULT_LEARN = [
@@ -59,34 +71,40 @@ const CAT_COLORS: Record<string, string> = {
 };
 
 interface CourseForm {
-  title: string; short_description: string; description: string; category: string;
-  subcategory: string;
+  title: string; short_description: string; description: string; category: string[];
+  subcategory: string[];
   instructor_name: string; instructor_bio: string; price: string; original_price: string;
   thumbnail_url: string; telegram_link: string; level: string; language: string;
-  duration_hours: string; total_lectures: string; rating: string; total_students: string;
+  duration_hours: string; total_lectures: string; manual_rating: string; manual_students: string;
   is_featured: boolean; is_free: boolean; is_published: boolean;
   what_you_learn: string[]; requirements: string[]; tags: string[];
 }
 
 const emptyForm: CourseForm = {
-  title: "", short_description: "", description: "", category: CATEGORIES[0],
-  subcategory: "",
+  title: "", short_description: "", description: "", category: [],
+  subcategory: [],
   instructor_name: "", instructor_bio: "", price: "", original_price: "",
   thumbnail_url: "", telegram_link: "", level: "Beginner", language: "Hindi",
-  duration_hours: "", total_lectures: "", rating: "", total_students: "",
-  is_featured: false, is_free: false, is_published: false,
+  duration_hours: "", total_lectures: "", manual_rating: "", manual_students: "0",
+  is_featured: false, is_free: false, is_published: true,
   what_you_learn: [], requirements: [], tags: [],
 };
 
 export default function AdminCourses() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState("all");
+  const [subcatFilter, setSubcatFilter] = useState("all");
   const [levelFilter, setLevelFilter] = useState("all");
   const [pubFilter, setPubFilter] = useState("all");
   const [featFilter, setFeatFilter] = useState("all");
   const [page, setPage] = useState(0);
+  const [catInput, setCatInput] = useState("");
+  const [subcatInput, setSubcatInput] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const perPage = 20;
   const { toast } = useToast();
 
@@ -111,17 +129,47 @@ export default function AdminCourses() {
   const [csvImporting, setCsvImporting] = useState(false);
 
   const fetchCourses = useCallback(async () => {
-    setLoading(true);
-    const { data } = await supabase.from("courses").select("*").order("created_at", { ascending: false });
-    setCourses(data || []);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const { data: cData, error: cError } = await (supabase as any)
+        .from("courses")
+        .select("*")
+        .or("is_deleted.eq.false,is_deleted.is.null")
+        .order("created_at", { ascending: false });
+
+      if (cError) {
+        console.error("Error fetching courses:", cError);
+        return;
+      }
+
+      const { data: pData, error: pError } = await supabase.from("purchases").select("*");
+      if (pError) console.error("Error fetching purchases:", pError);
+      
+      const { data: rData, error: rError } = await (supabase as any).from("reviews").select("course_id, rating");
+      if (rError) console.error("Error fetching reviews:", rError);
+      
+      setCourses(cData || []);
+      setPurchases(pData || []);
+      setReviews(rData || []);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { fetchCourses(); }, [fetchCourses]);
 
   const filtered = courses.filter((c) => {
     if (search && !c.title?.toLowerCase().includes(search.toLowerCase()) && !c.instructor_name?.toLowerCase().includes(search.toLowerCase())) return false;
-    if (catFilter !== "all" && c.category !== catFilter) return false;
+    if (catFilter !== "all") {
+      const cats: string[] = Array.isArray(c.category) ? c.category : (c.category ? [c.category] : []);
+      if (!cats.includes(catFilter)) return false;
+    }
+    if (subcatFilter !== "all") {
+      const subcats: string[] = Array.isArray(c.subcategory) ? c.subcategory : (c.subcategory ? [c.subcategory] : []);
+      if (!subcats.includes(subcatFilter)) return false;
+    }
     if (levelFilter !== "all" && c.level !== levelFilter) return false;
     if (pubFilter === "published" && !c.is_published) return false;
     if (pubFilter === "unpublished" && c.is_published) return false;
@@ -133,16 +181,46 @@ export default function AdminCourses() {
   const paged = filtered.slice(page * perPage, (page + 1) * perPage);
   const totalPages = Math.ceil(filtered.length / perPage);
 
+  // Stats Calculations
+  const courseRevenueMap = useMemo(() => {
+    const map = new Map<string, { students: number, revenue: number }>();
+    purchases.forEach(p => {
+      const existing = map.get(p.course_id) || { students: 0, revenue: 0 };
+      existing.students += 1;
+      existing.revenue += Number(p.price_paid) || 0;
+      map.set(p.course_id, existing);
+    });
+    return map;
+  }, [purchases]);
+
+  const courseRatingMap = useMemo(() => {
+    const map = new Map<string, { total: number, count: number }>();
+    reviews.forEach(r => {
+      const existing = map.get(r.course_id) || { total: 0, count: 0 };
+      existing.total += Number(r.rating) || 0;
+      existing.count += 1;
+      map.set(r.course_id, existing);
+    });
+    return map;
+  }, [reviews]);
+
+  const totalCourses = courses.length; // Already filtered is_deleted=false locally via state
+  const publishedCourses = courses.filter(c => c.is_published).length;
+  const draftCourses = courses.filter(c => !c.is_published).length;
+  const totalRevenue = purchases.reduce((sum, p) => sum + (Number(p.price_paid) || 0), 0);
+  const totalStudents = purchases.length;
+
   const openAdd = () => {
     setEditId(null); setForm({ ...emptyForm }); setLearnInput(""); setReqInput("");
-    setTagInput(""); setThumbMode("url"); setFormOpen(true);
+    setTagInput(""); setThumbMode("url"); setCatInput(""); setSubcatInput(""); setFormOpen(true);
   };
 
   const openEdit = (c: any) => {
     setEditId(c.id);
     setForm({
       title: c.title || "", short_description: c.short_description || "", description: c.description || "",
-      category: c.category || CATEGORIES[0], subcategory: c.subcategory || "",
+      category: Array.isArray(c.category) ? c.category : (c.category ? [c.category] : []),
+      subcategory: Array.isArray(c.subcategory) ? c.subcategory : (c.subcategory ? [c.subcategory] : []),
       instructor_name: c.instructor_name || "", instructor_bio: c.instructor_bio || "",
       price: c.price != null && c.price !== 0 ? String(c.price) : "",
       original_price: c.original_price != null && c.original_price !== 0 ? String(c.original_price) : "",
@@ -150,12 +228,12 @@ export default function AdminCourses() {
       level: c.level || "Beginner", language: c.language || "Hindi",
       duration_hours: c.duration_hours != null && c.duration_hours !== 0 ? String(c.duration_hours) : "",
       total_lectures: c.total_lectures != null && c.total_lectures !== 0 ? String(c.total_lectures) : "",
-      rating: c.rating != null && c.rating !== 0 ? String(c.rating) : "",
-      total_students: c.total_students != null && c.total_students !== 0 ? String(c.total_students) : "",
+      manual_rating: c.rating != null ? String(c.rating) : "",
+      manual_students: c.total_students != null ? String(c.total_students) : "0",
       is_featured: !!c.is_featured, is_free: !!c.is_free, is_published: !!c.is_published,
       what_you_learn: c.what_you_learn || [], requirements: c.requirements || [], tags: c.tags || [],
     });
-    setLearnInput(""); setReqInput(""); setTagInput("");
+    setLearnInput(""); setReqInput(""); setTagInput(""); setCatInput(""); setSubcatInput("");
     setThumbMode(c.thumbnail_url ? "url" : "url");
     setFormOpen(true);
   };
@@ -164,8 +242,8 @@ export default function AdminCourses() {
     title: f.title,
     short_description: f.short_description,
     description: f.description,
-    category: f.category,
-    subcategory: f.subcategory || null,
+    category: f.category.length > 0 ? f.category : null,
+    subcategory: f.subcategory.length > 0 ? f.subcategory : null,
     instructor_name: f.instructor_name,
     instructor_bio: f.instructor_bio,
     price: f.price !== "" ? Number(f.price) : null,
@@ -176,8 +254,8 @@ export default function AdminCourses() {
     language: f.language,
     duration_hours: f.duration_hours !== "" ? Number(f.duration_hours) : null,
     total_lectures: f.total_lectures !== "" ? Number(f.total_lectures) : null,
-    rating: f.rating !== "" ? Number(f.rating) : null,
-    total_students: f.total_students !== "" ? Number(f.total_students) : null,
+    rating: f.manual_rating !== "" ? Number(f.manual_rating) : null,
+    total_students: f.manual_students !== "" ? Number(f.manual_students) : 0,
     is_featured: f.is_featured,
     is_free: f.is_free,
     is_published: f.is_published,
@@ -187,7 +265,28 @@ export default function AdminCourses() {
   });
 
   const handleSave = async () => {
-    if (!form.title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
+    // Validation
+    const errors: string[] = [];
+    if (!form.title.trim()) errors.push("Course Title is required");
+    if (form.category.length === 0) errors.push("Category is required");
+    if (form.price !== "" && Number(form.price) < 0) errors.push("Price must be >= 0");
+    if (!form.telegram_link.trim()) errors.push("Telegram Link is required");
+    
+    const ms = Number(form.manual_students);
+    if (form.manual_students === "" || isNaN(ms) || ms < 0 || !Number.isInteger(ms)) errors.push("Manual Students must be an integer >= 0");
+    
+    if (form.manual_rating !== "") {
+      const mr = Number(form.manual_rating);
+      if (isNaN(mr) || mr < 0 || mr > 5) errors.push("Manual Rating must be between 0 and 5");
+    }
+
+    if (errors.length > 0) {
+      toast({ title: "Validation Error", description: errors[0], variant: "destructive" });
+      const modal = document.querySelector('[role="dialog"]');
+      if (modal) modal.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setSaving(true);
 
     // Capture any pending inputs before building payload
@@ -223,7 +322,8 @@ export default function AdminCourses() {
       setFormOpen(false);
       fetchCourses();
     } catch (error: any) {
-      toast({ title: "Error saving course", description: error.message, variant: "destructive" });
+      console.error("Save error:", error);
+      toast({ title: "Error saving course", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -231,30 +331,90 @@ export default function AdminCourses() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from("courses").delete().eq("id", deleteId);
-    if (error) toast({ title: "Error deleting course", description: error.message, variant: "destructive" });
-    else toast({ title: "Course deleted" });
-    setDeleteId(null);
-    fetchCourses();
+    try {
+      // Soft delete logic: set is_deleted = true
+      const { error } = await (supabase as any).from("courses").update({ is_deleted: true }).eq("id", deleteId);
+      if (error) {
+        console.error("Delete error:", error);
+        toast({ title: "Error deleting course", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Course moved to trash (soft deleted)" });
+      setDeleteId(null);
+      setSelectedIds(new Set([...selectedIds].filter(id => id !== deleteId)));
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast({ title: "Error deleting course", description: err.message || "Unknown error", variant: "destructive" });
+    }
+  };
+
+  const handleBulkAction = async (action: "publish" | "unpublish" | "featured" | "delete") => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    setToggling("bulk");
+    try {
+      if (action === "publish") {
+        const { error } = await supabase.from("courses").update({ is_published: true }).in("id", ids);
+        if (error) throw error;
+        toast({ title: `${ids.length} courses published` });
+      } else if (action === "unpublish") {
+        const { error } = await supabase.from("courses").update({ is_published: false }).in("id", ids);
+        if (error) throw error;
+        toast({ title: `${ids.length} courses unpublished` });
+      } else if (action === "featured") {
+        const { error } = await supabase.from("courses").update({ is_featured: true }).in("id", ids);
+        if (error) throw error;
+        toast({ title: `${ids.length} courses featured` });
+      } else if (action === "delete") {
+        const { error } = await (supabase as any).from("courses").update({ is_deleted: true }).in("id", ids);
+        if (error) throw error;
+        toast({ title: `${ids.length} courses soft deleted` });
+      }
+      setSelectedIds(new Set());
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Bulk action failed:", err);
+      toast({ title: "Bulk action failed", description: err.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setToggling(null);
+    }
   };
 
   const handleDuplicate = async (c: any) => {
-    const { id, created_at, updated_at, ...rest } = c;
-    const { error } = await supabase.from("courses").insert({ ...rest, title: `${c.title} (Copy)`, is_published: false });
-    if (error) toast({ title: "Duplicate failed", description: error.message, variant: "destructive" });
-    else toast({ title: "Course duplicated" });
-    fetchCourses();
+    try {
+      const { id, created_at, updated_at, ...rest } = c;
+      const { error } = await supabase.from("courses").insert({ ...rest, title: `${c.title} (Copy)`, is_published: false });
+      if (error) {
+        console.error("Duplicate error:", error);
+        toast({ title: "Duplicate failed", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: "Course duplicated" });
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast({ title: "Duplicate failed", description: err.message || "Unknown error", variant: "destructive" });
+    }
   };
 
   const toggleField = async (id: string, field: "is_published" | "is_featured", current: boolean) => {
     setToggling(id + field);
-    const { error } = await supabase.from("courses").update({ [field]: !current }).eq("id", id);
-    if (error) toast({ title: "Update failed", description: error.message, variant: "destructive" });
-    else {
+    try {
+      const { error } = await supabase.from("courses").update({ [field]: !current }).eq("id", id);
+      if (error) {
+        console.error("Toggle error:", error);
+        toast({ title: "Update failed", description: error.message, variant: "destructive" });
+        return;
+      }
       toast({ title: `Course ${field === "is_published" ? (!current ? "published" : "unpublished") : (!current ? "featured" : "unfeatured")}` });
       setCourses(prev => prev.map(c => c.id === id ? { ...c, [field]: !current } : c));
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast({ title: "Update failed", description: err.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setToggling(null);
     }
-    setToggling(null);
   };
 
   // Thumbnail upload — uses course-thumbnails bucket
@@ -265,19 +425,25 @@ export default function AdminCourses() {
       toast({ title: "Invalid file type", description: "Only JPG, PNG, WEBP allowed", variant: "destructive" });
       return;
     }
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-    const { error } = await supabase.storage.from("course-thumbnails").upload(path, file);
-    if (error) {
-      toast({ title: "Image upload failed", description: "Please try URL instead", variant: "destructive" });
+    try {
+      setUploading(true);
+      const ext = file.name.split(".").pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("course-thumbnails").upload(path, file);
+      if (error) {
+        console.error("Upload error:", error);
+        toast({ title: "Image upload failed", description: error.message || "Please try URL instead", variant: "destructive" });
+        return;
+      }
+      const { data: urlData } = supabase.storage.from("course-thumbnails").getPublicUrl(path);
+      setForm(f => ({ ...f, thumbnail_url: urlData.publicUrl }));
+      toast({ title: "Image uploaded successfully" });
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast({ title: "Image upload failed", description: err.message || "Unknown error", variant: "destructive" });
+    } finally {
       setUploading(false);
-      return;
     }
-    const { data: urlData } = supabase.storage.from("course-thumbnails").getPublicUrl(path);
-    setForm(f => ({ ...f, thumbnail_url: urlData.publicUrl }));
-    toast({ title: "Image uploaded successfully" });
-    setUploading(false);
   };
 
   const addTag = (val: string) => {
@@ -374,9 +540,20 @@ export default function AdminCourses() {
         } else {
           obj.requirements = DEFAULT_REQUIREMENTS;
         }
-        // Clean empty strings to null for optional text fields
-        if (!obj.category) obj.category = null;
-        if (!obj.subcategory) obj.subcategory = null;
+        
+        // Categoria & Subcategory comma parsing
+        if (obj.category && typeof obj.category === "string" && obj.category.trim()) {
+           obj.category = obj.category.split(",").map((c: string) => c.trim()).filter(Boolean);
+        } else {
+           obj.category = null;
+        }
+
+        if (obj.subcategory && typeof obj.subcategory === "string" && obj.subcategory.trim()) {
+           obj.subcategory = obj.subcategory.split(",").map((s: string) => s.trim()).filter(Boolean);
+        } else {
+           obj.subcategory = null;
+        }
+
         if (!obj.instructor_name) obj.instructor_name = null;
         if (!obj.level) obj.level = null;
         return obj;
@@ -388,13 +565,24 @@ export default function AdminCourses() {
   };
 
   const importCSV = async () => {
-    setCsvImporting(true);
-    const cleaned = csvData.map(r => ({ ...r, title: r.title || "Untitled" }));
-    const { error } = await supabase.from("courses").insert(cleaned);
-    if (error) toast({ title: "Import failed", description: error.message, variant: "destructive" });
-    else toast({ title: `${csvData.length} courses imported successfully` });
-    setCsvImporting(false); setCsvOpen(false); setCsvData([]); setCsvErrors([]);
-    fetchCourses();
+    try {
+      setCsvImporting(true);
+      const cleaned = csvData.map(r => ({ ...r, title: r.title || "Untitled" }));
+      const { error } = await supabase.from("courses").insert(cleaned);
+      if (error) {
+        console.error("Import error:", error);
+        toast({ title: "Import failed", description: error.message, variant: "destructive" });
+        return;
+      }
+      toast({ title: `${csvData.length} courses imported successfully` });
+      setCsvOpen(false); setCsvData([]); setCsvErrors([]);
+      fetchCourses();
+    } catch (err: any) {
+      console.error("Unexpected error:", err);
+      toast({ title: "Import failed", description: err.message || "Unknown error", variant: "destructive" });
+    } finally {
+      setCsvImporting(false);
+    }
   };
 
   const priceNum = form.price !== "" ? Number(form.price) : 0;
@@ -411,12 +599,57 @@ export default function AdminCourses() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold">Courses ({filtered.length})</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="h-6 w-6"/> Courses ({filtered.length})</h1>
         <div className="flex gap-2 flex-wrap">
+          {selectedIds.size > 0 && (
+            <div className="flex items-center gap-2 bg-[#1E293B] border border-[#334155] rounded-md px-2 mr-2">
+               <span className="text-sm text-green-400 font-semibold px-2">{selectedIds.size} Selected</span>
+               <div className="h-4 w-px bg-[#334155] mx-1"></div>
+               <Button size="sm" variant="ghost" className="h-8 px-2" disabled={toggling === "bulk"} onClick={() => handleBulkAction("publish")}><Eye className="h-4 w-4 mr-1"/> Publish</Button>
+               <Button size="sm" variant="ghost" className="h-8 px-2" disabled={toggling === "bulk"} onClick={() => handleBulkAction("unpublish")}><EyeOff className="h-4 w-4 mr-1"/> Unpublish</Button>
+               <Button size="sm" variant="ghost" className="h-8 px-2 text-yellow-500" disabled={toggling === "bulk"} onClick={() => handleBulkAction("featured")}><Star className="h-4 w-4 mr-1"/> Feature</Button>
+               <div className="h-4 w-px bg-[#334155] mx-1"></div>
+               <Button size="sm" variant="ghost" className="h-8 px-2 text-red-500 hover:text-red-400 hover:bg-red-500/10" disabled={toggling === "bulk"} onClick={() => handleBulkAction("delete")}><Trash2 className="h-4 w-4 mr-1"/> Bulk Delete</Button>
+            </div>
+          )}
           <Button onClick={() => setCsvOpen(true)} variant="outline" className="gap-2 border-[#334155]"><Upload className="h-4 w-4" /> CSV Upload</Button>
           <Button onClick={exportCSV} variant="outline" className="gap-2 border-[#334155]"><Download className="h-4 w-4" /> Export</Button>
           <Button onClick={openAdd} className="gap-2 bg-green-600 hover:bg-green-700 text-white"><Plus className="h-4 w-4" /> Add New Course</Button>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="bg-[#1E293B] border-[#334155]">
+          <CardContent className="p-4 flex flex-col justify-center gap-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5"><BookOpen className="h-3 w-3" /> Total Courses</p>
+            <p className="text-xl font-bold text-white">{totalCourses}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-[#1E293B] border-[#334155]">
+          <CardContent className="p-4 flex flex-col justify-center gap-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5"><Eye className="h-3 w-3" /> Published</p>
+            <p className="text-xl font-bold text-green-400">{publishedCourses}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-[#1E293B] border-[#334155]">
+          <CardContent className="p-4 flex flex-col justify-center gap-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5"><EyeOff className="h-3 w-3" /> Drafts</p>
+            <p className="text-xl font-bold text-muted-foreground">{draftCourses}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-[#1E293B] border-[#334155]">
+          <CardContent className="p-4 flex flex-col justify-center gap-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5"><Users className="h-3 w-3" /> Total Students</p>
+            <p className="text-xl font-bold text-white">{totalStudents.toLocaleString()}</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-[#1E293B] border-[#334155]">
+          <CardContent className="p-4 flex flex-col justify-center gap-1">
+            <p className="text-xs font-medium text-muted-foreground uppercase flex items-center gap-1.5"><TrendingUp className="h-3 w-3" /> Total Revenue</p>
+            <p className="text-xl font-bold text-green-400">₹{totalRevenue.toLocaleString()}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
@@ -425,9 +658,24 @@ export default function AdminCourses() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search courses..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} className="pl-10 bg-[#1E293B] border-[#334155]" />
         </div>
-        <Select value={catFilter} onValueChange={(v) => { setCatFilter(v); setPage(0); }}>
+        <Select value={catFilter} onValueChange={(v) => { setCatFilter(v); setSubcatFilter("all"); setPage(0); }}>
           <SelectTrigger className="w-44 bg-[#1E293B] border-[#334155]"><SelectValue placeholder="Category" /></SelectTrigger>
           <SelectContent><SelectItem value="all">All Categories</SelectItem>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+        </Select>
+        {/* Subcategory filter — show all subcats or filtered by selected category */}
+        <Select value={subcatFilter} onValueChange={(v) => { setSubcatFilter(v); setPage(0); }}>
+          <SelectTrigger className="w-48 bg-[#1E293B] border-[#334155]"><SelectValue placeholder="Subcategory" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Subcategories</SelectItem>
+            {catFilter === "all" 
+              ? Object.entries(SUBCATEGORY_MAP).flatMap(([cat, subs]) => 
+                  subs.map(s => <SelectItem key={`${cat}-${s}`} value={s}>{s}</SelectItem>)
+                )
+              : (SUBCATEGORY_MAP[catFilter] || []).map(s => (
+                  <SelectItem key={`${catFilter}-${s}`} value={s}>{s}</SelectItem>
+                ))
+            }
+          </SelectContent>
         </Select>
         <Select value={levelFilter} onValueChange={(v) => { setLevelFilter(v); setPage(0); }}>
           <SelectTrigger className="w-36 bg-[#1E293B] border-[#334155]"><SelectValue placeholder="Level" /></SelectTrigger>
@@ -452,13 +700,27 @@ export default function AdminCourses() {
             <Table>
               <TableHeader>
                 <TableRow className="border-[#334155]">
-                  <TableHead className="w-10">#</TableHead>
+                  <TableHead className="w-10">
+                    <Checkbox 
+                      checked={selectedIds.size === paged.length && paged.length > 0} 
+                      onCheckedChange={(c) => {
+                        if (c) setSelectedIds(new Set([...selectedIds, ...paged.map(x => x.id)]));
+                        else {
+                          const newSet = new Set(selectedIds);
+                          paged.forEach(x => newSet.delete(x.id));
+                          setSelectedIds(newSet);
+                        }
+                      }} 
+                    />
+                  </TableHead>
                   <TableHead className="w-14">Thumb</TableHead>
                   <TableHead>Course Name</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Subcategory</TableHead>
                   <TableHead>Instructor</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Students</TableHead>
+                  <TableHead>Revenue</TableHead>
                   <TableHead>Rating</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Featured</TableHead>
@@ -466,9 +728,24 @@ export default function AdminCourses() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paged.map((c, idx) => (
+                {paged.map((c, idx) => {
+                  const dynamicStats = courseRevenueMap.get(c.id) || { students: 0, revenue: 0 };
+                  const display_students = dynamicStats.students + (Number(c.total_students) || 0);
+
+                  const reviewStats = courseRatingMap.get(c.id) || { total: 0, count: 0 };
+                  const dbRating = c.rating != null ? Number(c.rating) : null;
+                  const avgRating = reviewStats.count > 0 ? (reviewStats.total / reviewStats.count) : 0;
+                  const display_rating = dbRating !== null ? dbRating : avgRating;
+                  
+                  return (
                   <TableRow key={c.id} className="border-[#334155] hover:bg-[#334155]/50 transition-colors">
-                    <TableCell className="text-muted-foreground text-xs">{page * perPage + idx + 1}</TableCell>
+                    <TableCell>
+                      <Checkbox checked={selectedIds.has(c.id)} onCheckedChange={(ch) => {
+                        const newSet = new Set(selectedIds);
+                        if (ch) newSet.add(c.id); else newSet.delete(c.id);
+                        setSelectedIds(newSet);
+                      }} />
+                    </TableCell>
                     <TableCell>
                       {c.thumbnail_url ? (
                         <img src={c.thumbnail_url} alt="" className="h-12 w-12 rounded-lg object-cover" />
@@ -476,11 +753,21 @@ export default function AdminCourses() {
                         <div className="h-12 w-12 rounded-lg bg-[#334155] flex items-center justify-center"><ImageIcon className="h-5 w-5 text-muted-foreground" /></div>
                       )}
                     </TableCell>
-                    <TableCell><span className="font-medium text-sm whitespace-normal break-words max-w-[200px] block">{c.title}</span></TableCell>
+                    <TableCell>
+                      <span className="font-medium text-sm whitespace-normal break-words max-w-[200px] block line-clamp-2" title={c.title}>{c.title}</span>
+                    </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
-                        <Badge className={`text-xs ${CAT_COLORS[c.category] || "bg-secondary/20 text-secondary"}`}>{c.category}</Badge>
-                        {c.subcategory && <span className="text-[10px] text-muted-foreground">{c.subcategory}</span>}
+                        {(Array.isArray(c.category) ? c.category : (c.category ? [c.category] : [])).map((cat: string) => (
+                          <Badge key={cat} className={`text-xs ${CAT_COLORS[cat] || "bg-secondary/20 text-secondary"}`}>{cat}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {(Array.isArray(c.subcategory) ? c.subcategory : (c.subcategory ? [c.subcategory] : [])).map((sub: string) => (
+                          <span key={sub} className="text-[10px] text-muted-foreground bg-[#334155]/60 px-1.5 py-0.5 rounded">{sub}</span>
+                        ))}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm">{c.instructor_name}</TableCell>
@@ -496,11 +783,12 @@ export default function AdminCourses() {
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm">{c.total_students || 0}</TableCell>
+                    <TableCell className="text-sm font-medium">{display_students}</TableCell>
+                    <TableCell className="text-sm text-green-400 font-semibold">₹{dynamicStats.revenue.toLocaleString()}</TableCell>
                     <TableCell>
                       <span className="flex items-center gap-1 text-sm">
                         <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                        {Number(c.rating || 0).toFixed(1)}
+                        {display_rating.toFixed(1)}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -526,9 +814,9 @@ export default function AdminCourses() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )})}
                 {paged.length === 0 && (
-                  <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground py-12">
+                  <TableRow><TableCell colSpan={12} className="text-center text-muted-foreground py-12">
                     <div className="flex flex-col items-center gap-2">
                       <Search className="h-10 w-10 text-[#334155]" />
                       <p>No courses found</p>
@@ -564,16 +852,73 @@ export default function AdminCourses() {
                 <Label>Course Title *</Label>
                 <Input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className="bg-[#0F172A] border-[#334155]" />
               </div>
-              <div className="space-y-1.5">
-                <Label>Category</Label>
-                <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
-                  <SelectTrigger className="bg-[#0F172A] border-[#334155]"><SelectValue /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Category <span className="text-muted-foreground text-xs">(select multiple)</span></Label>
+                {/* Chip display */}
+                <div className="flex flex-wrap gap-1.5 p-2 bg-[#0F172A] border border-[#334155] rounded-md min-h-[40px] items-center">
+                  {form.category.map((cat) => (
+                    <Badge key={cat} className={`gap-1 text-xs ${CAT_COLORS[cat] || "bg-secondary/20 text-secondary"}`}>
+                      {cat}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setForm(f => ({ ...f, category: f.category.filter(c => c !== cat), subcategory: f.subcategory.filter(s => (SUBCATEGORY_MAP[cat] || []).indexOf(s) === -1) }))} />
+                    </Badge>
+                  ))}
+                </div>
+                {/* Add category dropdown */}
+                {form.category.length < CATEGORIES.length && (
+                  <div className="flex gap-2">
+                    <Select value={catInput} onValueChange={v => {
+                      if (v && !form.category.includes(v)) {
+                        setForm(f => ({ ...f, category: [...f.category, v] }));
+                      }
+                      setCatInput("");
+                    }}>
+                      <SelectTrigger className="bg-[#0F172A] border-[#334155] text-sm">
+                        <SelectValue placeholder="+ Add category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.filter(c => !form.category.includes(c)).map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
-              <div className="space-y-1.5">
-                <Label>Subcategory</Label>
-                <Input value={form.subcategory} onChange={e => setForm(f => ({ ...f, subcategory: e.target.value }))} placeholder="e.g. Candlestick Patterns" className="bg-[#0F172A] border-[#334155]" />
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label>Subcategory <span className="text-muted-foreground text-xs">(select multiple)</span></Label>
+                {/* Chip display */}
+                <div className="flex flex-wrap gap-1.5 p-2 bg-[#0F172A] border border-[#334155] rounded-md min-h-[40px] items-center">
+                  {form.subcategory.map((sub) => (
+                    <Badge key={sub} variant="secondary" className="gap-1 text-xs">
+                      {sub}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => setForm(f => ({ ...f, subcategory: f.subcategory.filter(s => s !== sub) }))} />
+                    </Badge>
+                  ))}
+                  {form.category.length === 0 && form.subcategory.length === 0 && (
+                    <span className="text-xs text-muted-foreground/50">Select a category first</span>
+                  )}
+                </div>
+                {/* Available subcategory options based on selected categories */}
+                {(() => {
+                  const available = form.category.flatMap(c => SUBCATEGORY_MAP[c] || []).filter((s, i, arr) => arr.indexOf(s) === i && !form.subcategory.includes(s));
+                  return (
+                    <Select disabled={form.category.length === 0} value={subcatInput} onValueChange={v => {
+                      if (v && !form.subcategory.includes(v)) {
+                        setForm(f => ({ ...f, subcategory: [...f.subcategory, v] }));
+                      }
+                      setSubcatInput("");
+                    }}>
+                      <SelectTrigger className="bg-[#0F172A] border-[#334155] text-sm">
+                        <SelectValue placeholder={form.category.length === 0 ? "Select category first" : "+ Add subcategory"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {available.map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })()}
               </div>
               <div className="space-y-1.5">
                 <Label>Level</Label>
@@ -617,14 +962,14 @@ export default function AdminCourses() {
                 <Input type="number" value={form.total_lectures} onChange={e => setForm(f => ({ ...f, total_lectures: e.target.value }))} placeholder="e.g. 42" className="bg-[#0F172A] border-[#334155]" />
               </div>
               <div className="space-y-1.5">
-                <Label>Rating (0-5)</Label>
-                <Input type="number" min={0} max={5} step={0.1} value={form.rating} onChange={e => setForm(f => ({ ...f, rating: e.target.value }))} placeholder="e.g. 4.7" className="bg-[#0F172A] border-[#334155]" />
-                <p className="text-xs text-muted-foreground">Auto-updates when users rate</p>
+                <Label>Manual Rating Override (0-5)</Label>
+                <Input type="number" min={0} max={5} step={0.1} value={form.manual_rating} onChange={e => setForm(f => ({ ...f, manual_rating: e.target.value }))} placeholder="e.g. 4.7" className="bg-[#0F172A] border-[#334155]" />
+                <p className="text-xs text-muted-foreground">Override rating manually (leave empty for auto from reviews)</p>
               </div>
               <div className="space-y-1.5">
-                <Label>Students Count</Label>
-                <Input type="number" min={0} value={form.total_students} onChange={e => setForm(f => ({ ...f, total_students: e.target.value }))} placeholder="e.g. 1000" className="bg-[#0F172A] border-[#334155]" />
-                <p className="text-xs text-muted-foreground">Auto-updates when users purchase</p>
+                <Label>Manual Students Boost</Label>
+                <Input type="number" min={0} value={form.manual_students} onChange={e => setForm(f => ({ ...f, manual_students: e.target.value }))} placeholder="e.g. 1000" className="bg-[#0F172A] border-[#334155]" />
+                <p className="text-xs text-muted-foreground">Extra students for display (marketing boost)</p>
               </div>
             </div>
 
@@ -651,8 +996,8 @@ export default function AdminCourses() {
                 <Input placeholder="https://example.com/image.jpg" value={form.thumbnail_url} onChange={e => setForm(f => ({ ...f, thumbnail_url: e.target.value }))} className="bg-[#0F172A] border-[#334155]" />
               )}
               {form.thumbnail_url && (
-                <div className="mt-2">
-                  <img src={form.thumbnail_url} alt="preview" className="h-[120px] w-[200px] rounded-lg object-cover border border-[#334155]" />
+                <div className="mt-2 text-center">
+                  <img src={form.thumbnail_url} alt="preview" onError={(e) => { e.currentTarget.src = "/placeholder.svg"; }} className="h-[200px] w-[350px] mx-auto rounded-lg object-cover border border-[#334155] shadow-lg" />
                 </div>
               )}
             </div>

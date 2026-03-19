@@ -23,6 +23,8 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useWishlistContext } from "@/contexts/WishlistContext";
 import { usePurchaseContext } from "@/contexts/PurchaseContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -90,6 +92,8 @@ const CourseDetail = () => {
   const { toggleWishlist, isWishlisted } = useWishlistContext();
   const { isPurchased } = usePurchaseContext();
   const { isSubscribed } = useSubscription();
+  const { profile } = useAuth();
+  const { toast } = useToast();
   const [showFullDesc, setShowFullDesc] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
   const [openSections, setOpenSections] = useState<string[]>([]);
@@ -182,10 +186,10 @@ const CourseDetail = () => {
       }
 
       setCourse(courseData);
-      fetchRecommendations(courseData.category, courseData.instructor_name, id);
+      fetchRecommendations((courseData.category && courseData.category.length > 0) ? courseData.category[0] : "", courseData.instructor_name || "", id);
 
       // Fetch sections for this course
-      const { data: sectionsData } = await supabase
+      const { data: sectionsData } = await (supabase as any)
         .from("course_sections")
         .select(`
           id,
@@ -244,10 +248,10 @@ const CourseDetail = () => {
       // 2. Students Also Bought (Related by Category)
       if (category) {
         // Fetch from Supabase
-        const { data: dbRelatedData } = await supabase
+        const { data: dbRelatedData } = await (supabase as any)
           .from("courses")
           .select("*")
-          .eq("category", category)
+          .contains("category", [category])
           .eq("is_published", true)
           .neq("id", currentId)
           .limit(4);
@@ -256,7 +260,7 @@ const CourseDetail = () => {
         
         // Fetch from local data if we need more
         const localRelatedData = localCourses
-          .filter(c => c.category === category && c.id !== currentId)
+          .filter(c => (Array.isArray(c.category) ? c.category.includes(category) : c.category === category) && c.id !== currentId)
           .slice(0, 4 - dbRelatedMapped.length);
           
         setRelatedCourses([...dbRelatedMapped, ...localRelatedData]);
@@ -324,7 +328,21 @@ const CourseDetail = () => {
   const inCart = isInCart(course.id);
   const daysLeft = (parseInt(course.id.replace(/-/g, "").slice(0, 4), 16) % 5) + 1;
 
-  const handleBuyNow = () => navigate(`/checkout?courseId=${course.id}`);
+  const handleBuyNow = () => {
+    if (profile?.is_blocked) {
+      toast({ title: "Account Blocked", description: "You are not allowed to make purchases.", variant: "destructive" });
+      return;
+    }
+    navigate(`/checkout?courseId=${course.id}`);
+  };
+
+  const handleAddToCart = () => {
+    if (profile?.is_blocked) {
+      toast({ title: "Account Blocked", description: "You are not allowed to make purchases.", variant: "destructive" });
+      return;
+    }
+    addToCart(course.id);
+  };
 
   const handleToggleExpandAll = () => {
     if (expandAll) {
@@ -656,11 +674,11 @@ const CourseDetail = () => {
 
                           <div className="flex gap-2">
                             <Button
-                              onClick={() => addToCart(course.id)}
+                              onClick={handleAddToCart}
                               size="lg"
                               variant="outline"
                               className="flex-1 font-semibold"
-                              disabled={inCart}
+                              disabled={inCart || !!profile?.is_blocked}
                             >
                               <ShoppingCart className="mr-2 h-4 w-4" />
                               {inCart ? "In Cart" : "Add to Cart"}
@@ -678,6 +696,7 @@ const CourseDetail = () => {
                           <Button
                             onClick={handleBuyNow}
                             size="lg"
+                            disabled={!!profile?.is_blocked}
                             className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-glow"
                           >
                             Buy Now — ₹{price}
@@ -778,10 +797,10 @@ const CourseDetail = () => {
               <span className="text-xs text-muted-foreground line-through ml-1.5">₹{originalPrice}</span>
             )}
           </div>
-          <Button onClick={handleBuyNow} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
+          <Button onClick={handleBuyNow} disabled={!!profile?.is_blocked} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">
             Buy Now
           </Button>
-          <Button variant="outline" size="icon" onClick={() => addToCart(course.id)} disabled={inCart}>
+          <Button variant="outline" size="icon" onClick={handleAddToCart} disabled={inCart || !!profile?.is_blocked}>
             <ShoppingCart className="h-4 w-4" />
           </Button>
         </div>
