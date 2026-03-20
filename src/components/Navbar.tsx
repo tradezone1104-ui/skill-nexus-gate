@@ -25,7 +25,7 @@ const profileMenuItems = [
   { label: "Notifications", to: "/notifications" },
   { label: "Account Settings", to: "/settings" },
   { label: "Payment Methods", to: "/settings/payments" },
-  { label: "Subscription", to: "/settings/subscription" },
+  { label: "Subscription", to: "/billing" },
   { label: "CV Coins", to: "/cv-coins" },
   { label: "Purchase History", to: "/purchase-history" },
   { divider: true },
@@ -363,7 +363,7 @@ const Navbar = () => {
                           >
                             <span>{item.label}</span>
                             {'badge' in item && item.badge && (
-                              <span className="ml-2 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{item.badge}</span>
+                              <span className="ml-2 text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{item.badge as string}</span>
                             )}
                           </Link>
                         );

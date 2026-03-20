@@ -443,27 +443,27 @@ export type Database = {
       subscriptions: {
         Row: {
           created_at: string
-          expiry_date: string
+          end_date: string
           id: string
-          plan: string
+          plan_name: string
           start_date: string
           status: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          expiry_date: string
+          end_date: string
           id?: string
-          plan: string
+          plan_name: string
           start_date?: string
           status?: string
           user_id: string
         }
         Update: {
           created_at?: string
-          expiry_date?: string
+          end_date?: string
           id?: string
-          plan?: string
+          plan_name?: string
           start_date?: string
           status?: string
           user_id?: string

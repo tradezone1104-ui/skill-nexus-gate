@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Lock, Crown, CreditCard, Smartphone, Building2, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,9 +40,29 @@ type PaymentMethod = "upi" | "cards" | "netbanking" | "wallets";
 
 const SubscriptionCheckout = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const { isSubscribed } = useSubscription();
-  const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
+  const { isSubscribed, subscription } = useSubscription();
+  const mode = isSubscribed ? "change_plan" : "new_subscription";
+  const currentPlanName = (subscription as any)?.plan_name?.toLowerCase();
+
+  let remainingDays = 0;
+  if (subscription?.end_date) {
+    const endDate = new Date(subscription.end_date);
+    const now = new Date();
+    if (endDate > now) {
+      remainingDays = Math.ceil(Math.abs(endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    }
+  }
+  
+  const initialPlan = (searchParams.get("plan") as "yearly" | "monthly") || "yearly";
+  const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">(() => {
+    if (mode === "change_plan" && currentPlanName) {
+      return currentPlanName === "yearly" ? "monthly" : "yearly";
+    }
+    return ["yearly", "monthly"].includes(initialPlan) ? initialPlan : "yearly";
+  });
+  
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("upi");
   const [upiId, setUpiId] = useState("");
   const [showCoupon, setShowCoupon] = useState(false);
@@ -51,7 +71,8 @@ const SubscriptionCheckout = () => {
   const plan = plans.find((p) => p.id === selectedPlan)!;
 
   const handleStartSubscription = () => {
-    navigate("/payment-success");
+    localStorage.setItem('selectedPlan', selectedPlan);
+    navigate(`/payment-success?plan=${selectedPlan}`);
   };
 
   return (
@@ -73,62 +94,90 @@ const SubscriptionCheckout = () => {
 
       <main className="container mx-auto px-4 py-8 md:py-12">
         <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground mb-8">
-          Subscribe to CourseVerse Premium
+          {mode === "change_plan" ? "Change Your Subscription Plan" : "Subscribe to CourseVerse Premium"}
         </h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column */}
           <div className="flex-1 space-y-8">
-            {/* Unlock Banner */}
-            <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-4">
-              <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Crown className="h-8 w-8 text-primary" />
+            {/* Unlock Banner / Current Plan Box */}
+            {mode === "change_plan" ? (
+              <div className="bg-card border border-primary/30 rounded-xl p-5 shadow-sm animate-fade-in">
+                <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2 text-lg">
+                  <Crown className="w-5 h-5 text-primary" /> Current Plan: <span className="capitalize">{(subscription as any)?.plan_name || 'Premium'}</span>
+                </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 text-sm text-foreground">
+                  <Badge variant="outline" className="w-fit bg-primary/10 text-primary border-primary/20 px-3 py-1 font-semibold">
+                    {remainingDays} Days Remaining
+                  </Badge>
+                  <p className="text-muted-foreground font-medium">
+                    Remaining days will be directly added to your new plan.
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">
-                  Unlock unlimited access to 2000+ trading courses with CourseVerse Premium today!
-                </p>
+            ) : (
+              <div className="flex items-center gap-4 bg-card border border-border rounded-xl p-4">
+                <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <Crown className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground">
+                    Unlock unlimited access to 2000+ trading courses with CourseVerse Premium today!
+                  </p>
+                </div>
+                <Badge className="bg-primary/15 text-primary border-0 shrink-0">Included</Badge>
               </div>
-              <Badge className="bg-primary/15 text-primary border-0 shrink-0">Included</Badge>
-            </div>
+            )}
 
             {/* Plan Selection */}
             <div>
               <h2 className="font-display font-semibold text-lg text-foreground mb-4">Select Plan</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {plans.map((p) => (
-                  <button
-                    key={p.id}
-                    onClick={() => setSelectedPlan(p.id)}
-                    className={`relative text-left rounded-xl border-2 p-5 transition-all ${
-                      selectedPlan === p.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border bg-card hover:border-muted-foreground/30"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-0.5 h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                          selectedPlan === p.id ? "border-primary" : "border-muted-foreground/40"
-                        }`}
-                      >
-                        {selectedPlan === p.id && (
-                          <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-                        )}
+                {plans.map((p) => {
+                  const isCurrentPlan = mode === "change_plan" && currentPlanName === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => !isCurrentPlan && setSelectedPlan(p.id)}
+                      disabled={isCurrentPlan}
+                      className={`relative text-left rounded-xl border-2 p-5 transition-all ${
+                        isCurrentPlan
+                          ? "border-green-500/50 bg-green-500/5 cursor-not-allowed opacity-90"
+                          : selectedPlan === p.id
+                          ? "border-primary bg-primary/5"
+                          : "border-border bg-card hover:border-muted-foreground/30"
+                      }`}
+                    >
+                      {isCurrentPlan && (
+                        <div className="absolute -top-3 left-4">
+                          <Badge className="bg-green-500 hover:bg-green-600 text-white border-0 shadow-sm font-semibold">Current Plan</Badge>
+                        </div>
+                      )}
+                      <div className="flex items-start gap-3">
+                        <div
+                          className={`mt-0.5 h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                            isCurrentPlan ? "border-green-500/50" :
+                            selectedPlan === p.id ? "border-primary" : "border-muted-foreground/40"
+                          }`}
+                        >
+                          {(selectedPlan === p.id || isCurrentPlan) && (
+                            <div className={`h-2.5 w-2.5 rounded-full ${isCurrentPlan ? "bg-green-500/50" : "bg-primary"}`} />
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-semibold text-foreground">{p.label}</p>
+                          <p className="font-display font-bold text-xl text-foreground">{p.price}</p>
+                          {p.badge && !isCurrentPlan && (
+                            <Badge className="bg-primary/15 text-primary border-0 text-xs">
+                              {p.badge}
+                            </Badge>
+                          )}
+                          <p className="text-xs text-muted-foreground">{p.detail}</p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <p className="font-semibold text-foreground">{p.label}</p>
-                        <p className="font-display font-bold text-xl text-foreground">{p.price}</p>
-                        {p.badge && (
-                          <Badge className="bg-primary/15 text-primary border-0 text-xs">
-                            {p.badge}
-                          </Badge>
-                        )}
-                        <p className="text-xs text-muted-foreground">{p.detail}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -245,10 +294,12 @@ const SubscriptionCheckout = () => {
                 </div>
 
                 <Button
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-12 text-base"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold h-12 text-base shadow-glow transition-all"
                   onClick={handleStartSubscription}
+                  disabled={mode === "change_plan" && selectedPlan === currentPlanName}
                 >
-                  <Lock className="h-4 w-4 mr-1" /> Start Subscription
+                  <Lock className="h-4 w-4 mr-2" /> 
+                  {mode === "change_plan" ? `Switch to ${selectedPlan === "yearly" ? "Yearly" : "Monthly"}` : "Start Subscription"}
                 </Button>
                 <p className="text-xs text-center text-muted-foreground mt-2">
                   Payment integration coming soon — will be connected to Paytm.

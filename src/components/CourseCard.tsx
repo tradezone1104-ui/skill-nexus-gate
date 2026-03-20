@@ -43,7 +43,7 @@ const CourseCard = ({ course }: { course: Course }) => {
               </Badge>
             )}
             {isPurchased(course.id) ? (
-              <Badge className="bg-emerald-600 text-white text-[10px] font-semibold gap-1 px-2 py-0.5">
+              <Badge className="bg-primary text-primary-foreground text-[10px] font-semibold gap-1 px-2 py-0.5">
                 <CheckCircle className="h-3 w-3" /> Purchased
               </Badge>
             ) : isSubscribed ? (
@@ -97,7 +97,7 @@ const CourseCard = ({ course }: { course: Course }) => {
           {hasAccess ? (
             <div className="flex items-center gap-2">
               <Link to={`/course/${course.id}`} className="flex-1">
-                <Button size="sm" className="w-full bg-emerald-600 text-white hover:bg-emerald-700 text-xs gap-1.5 font-semibold">
+                <Button size="sm" className="w-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow text-xs gap-1.5 font-bold transition-all">
                   <CheckCircle className="h-3.5 w-3.5" /> View Course
                 </Button>
               </Link>

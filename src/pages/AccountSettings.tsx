@@ -6,6 +6,7 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -29,6 +30,7 @@ const sidebarItems: { id: Section; label: string; icon: React.ElementType }[] = 
 
 const AccountSettings = () => {
   const { user, profile, loading: authLoading } = useAuth();
+  const { isSubscribed, subscription } = useSubscription();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -73,13 +75,14 @@ const AccountSettings = () => {
 
   useEffect(() => {
     if (profile) {
-      setFullName(profile.full_name || "");
-      setAvatarUrl(profile.avatar_url || "");
-      setTelegramUsername(profile.telegram_username || "");
-      setUpiId(profile.upi_id || "");
-      setPaytmNumber(profile.paytm_number || "");
-      setBankAccount(profile.bank_account || "");
-      setBankIfsc(profile.bank_ifsc || "");
+      const p = profile as any;
+      setFullName(p.full_name || "");
+      setAvatarUrl(p.avatar_url || "");
+      setTelegramUsername(p.telegram_username || "");
+      setUpiId(p.upi_id || "");
+      setPaytmNumber(p.paytm_number || "");
+      setBankAccount(p.bank_account || "");
+      setBankIfsc(p.bank_ifsc || "");
     }
   }, [profile]);
 
@@ -151,7 +154,7 @@ const AccountSettings = () => {
       paytm_number: paytmNumber.trim(),
       bank_account: bankAccount.trim(),
       bank_ifsc: bankIfsc.trim()
-    }).eq("id", user.id);
+    } as any).eq("id", user.id);
     
     if (error) toast({ title: "Save failed", description: error.message, variant: "destructive" });
     else toast({ title: "Payment details updated" });
@@ -320,38 +323,92 @@ const AccountSettings = () => {
         );
 
       case "subscription":
+        const reactivate = (useSubscription() as any).reactivate;
         return (
           <div className="space-y-6">
             <div>
               <h2 className="text-xl font-bold text-foreground">Subscription</h2>
               <p className="text-sm text-muted-foreground mt-1">Manage your CourseVerse Premium plan</p>
             </div>
-            <Card className="border-border">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Current Plan</span>
-                  <span className="text-sm font-semibold text-foreground">Free</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
-                  <span className="text-sm font-medium text-muted-foreground">No active subscription</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Next Billing Date</span>
-                  <span className="text-sm text-muted-foreground">—</span>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-6 text-center">
-                <Crown className="h-8 w-8 text-primary mx-auto mb-2" />
-                <h3 className="font-semibold text-foreground mb-1">Upgrade to Premium</h3>
-                <p className="text-sm text-muted-foreground mb-4">Unlock 2,000+ premium courses starting at ₹499/month</p>
-                <Button onClick={() => navigate("/subscribe")}>Explore Plans</Button>
-              </CardContent>
-            </Card>
+            
+            {isSubscribed ? (
+              <Card className="border-border relative overflow-hidden shadow-sm bg-card transition-all">
+                <div className="absolute top-0 left-0 w-full h-1 bg-primary" />
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
+                <CardContent className="p-6 relative z-10 md:p-8">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+                    <div>
+                      <h3 className="text-2xl font-display font-bold text-foreground mb-1">Your Premium Membership</h3>
+                      <p className="text-sm text-muted-foreground font-medium">Full unrestricted access active</p>
+                    </div>
+                    <Badge className={subscription?.status === 'cancelled' ? "bg-destructive/10 text-destructive hover:bg-destructive font-semibold px-3 py-1 text-sm gap-1.5 shadow-glow" : "bg-primary text-primary-foreground hover:bg-primary font-semibold px-3 py-1 text-sm gap-1.5 shadow-glow"}>
+                      {subscription?.status === 'cancelled' ? "Cancelled" : <><Crown className="w-4 h-4" /> Active</>}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div className="space-y-1.5 p-4 rounded-xl border border-border bg-card shadow-sm">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Plan</span>
+                      <p className="font-semibold text-foreground text-sm capitalize">{(subscription as any)?.plan_name || 'Premium'}</p>
+                    </div>
+                    <div className="space-y-1.5 p-4 rounded-xl border border-border bg-card shadow-sm">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Access</span>
+                      <p className="font-semibold text-foreground text-sm">All Courses Access</p>
+                    </div>
+                    <div className="space-y-1.5 p-4 rounded-xl border border-border bg-card shadow-sm">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Status</span>
+                      <p className={subscription?.status === 'cancelled' ? "font-semibold text-destructive text-sm flex items-center gap-1.5" : "font-semibold text-primary text-sm flex items-center gap-1.5"}>
+                        {subscription?.status !== 'cancelled' && (
+                          <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                          </span>
+                        )}
+                        {subscription?.status === 'cancelled' ? "Pending Expiration" : "Active"}
+                      </p>
+                    </div>
+                    <div className="space-y-1.5 p-4 rounded-xl border border-border bg-card shadow-sm">
+                      <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Next Billing Date</span>
+                      <p className="font-semibold text-foreground text-sm">
+                        {subscription?.end_date ? new Date(subscription.end_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Lifetime — No renewal'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
+                    {subscription?.status === 'cancelled' ? (
+                      <Button onClick={async () => {
+                        await (reactivate as any)();
+                        toast({ title: "Welcome back!", description: "Your Premium access has been reactivated." });
+                      }} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm font-semibold h-11 transition-all">
+                        Reactivate Premium
+                      </Button>
+                    ) : (
+                      <Button onClick={() => navigate("/my-learning")} className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm font-semibold h-11 transition-all">
+                        Go to My Learning
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => navigate("/billing")} className="flex-1 border-border text-foreground hover:bg-accent font-semibold h-11 transition-all">
+                      Manage Billing
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-border bg-card relative overflow-hidden transition-all shadow-sm">
+                <div className="absolute inset-0 bg-gradient-to-tr from-primary/5 via-transparent to-transparent pointer-events-none" />
+                <CardContent className="p-8 md:p-12 text-center relative z-10 flex flex-col items-center justify-center">
+                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6 ring-8 ring-primary/5">
+                    <Crown className="h-10 w-10 text-primary" />
+                  </div>
+                  <h3 className="font-display font-extrabold text-2xl md:text-3xl text-foreground mb-3">Upgrade to Premium</h3>
+                  <p className="text-muted-foreground mb-8 max-w-sm mx-auto text-base">Unlock 2,000+ premium courses, exclusive communities, and more starting at just ₹333/month.</p>
+                  <Button onClick={() => navigate("/subscribe")} size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow font-bold h-12 px-10 text-base transition-all">
+                    View Premium Plans
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
 

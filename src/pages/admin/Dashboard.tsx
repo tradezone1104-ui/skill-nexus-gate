@@ -35,14 +35,13 @@ interface Stats {
 
 const DONUT_COLORS = ["#22C55E", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6", "#06B6D4", "#EC4899", "#14B8A6"];
 
-function formatDateTime(iso: string) {
+function formatNiceDate(iso: string) {
   const d = new Date(iso);
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const hh = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+  return d.toLocaleDateString("en-GB", { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatCurrency(num: number) {
+  return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(num);
 }
 
 function buildChartData(purchases: any[], days: number) {
@@ -133,13 +132,13 @@ export default function AdminDashboard() {
   if (loading)
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-40 bg-[#334155]" />
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+        <Skeleton className="h-8 w-40 bg-[#334155] rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 bg-[#1E293B]" />
+            <Skeleton key={i} className="h-28 bg-[#1E293B] border border-[#334155] rounded-xl" />
           ))}
         </div>
-        <Skeleton className="h-64 bg-[#1E293B]" />
+        <Skeleton className="h-[300px] bg-[#1E293B] border border-[#334155] rounded-xl" />
       </div>
     );
   if (!stats) return null;
@@ -168,16 +167,16 @@ export default function AdminDashboard() {
     });
 
   const statCards = [
-    { label: "Total Users", value: stats.users, icon: Users, color: "text-blue-400" },
-    { label: "Total Courses", value: stats.totalCourses, icon: BookOpen, color: "text-green-400" },
-    { label: "Published", value: stats.publishedCourses, icon: BookOpen, color: "text-emerald-400" },
-    { label: "Total Revenue", value: `₹${stats.revenue.toLocaleString()}`, icon: DollarSign, color: "text-yellow-400" },
-    { label: "Today's Revenue", value: `₹${stats.todayRevenue.toLocaleString()}`, icon: TrendingUp, color: "text-lime-400" },
-    { label: "Active Subs", value: stats.activeSubs, icon: CreditCard, color: "text-purple-400" },
-    { label: "Resellers", value: stats.resellers, icon: Briefcase, color: "text-cyan-400" },
-    { label: "Avg Order Value", value: `₹${stats.avgOrderValue.toLocaleString()}`, icon: Calculator, color: "text-teal-400" },
-    { label: "Pending Exchange", value: stats.pendingExchange, icon: ArrowLeftRight, color: "text-orange-400" },
-    { label: "Pending Sell", value: stats.pendingSell, icon: Coins, color: "text-pink-400" },
+    { label: "Total Users", value: stats.users, raw: stats.users, icon: Users, color: "text-blue-400", subtext: "All time registrations" },
+    { label: "Total Courses", value: stats.totalCourses, raw: stats.totalCourses, icon: BookOpen, color: "text-green-400", subtext: "Entire catalog" },
+    { label: "Published", value: stats.publishedCourses, raw: stats.publishedCourses, icon: BookOpen, color: "text-emerald-400", subtext: "Live and active" },
+    { label: "Total Revenue", value: `₹${formatCurrency(stats.revenue)}`, raw: stats.revenue, icon: DollarSign, color: "text-yellow-400", subtext: "Lifetime earnings" },
+    { label: "Today's Revenue", value: `₹${formatCurrency(stats.todayRevenue)}`, raw: stats.todayRevenue, icon: TrendingUp, color: "text-lime-400", subtext: "Since midnight" },
+    { label: "Active Subs", value: stats.activeSubs, raw: stats.activeSubs, icon: CreditCard, color: "text-purple-400", subtext: "Current subscribers" },
+    { label: "Resellers", value: stats.resellers, raw: stats.resellers, icon: Briefcase, color: "text-cyan-400", subtext: "Approved partners" },
+    { label: "Avg Order Value", value: `₹${formatCurrency(stats.avgOrderValue)}`, raw: stats.avgOrderValue, icon: Calculator, color: "text-teal-400", subtext: "Per transaction" },
+    { label: "Pending Exchange", value: stats.pendingExchange, raw: stats.pendingExchange, icon: ArrowLeftRight, color: "text-orange-400", subtext: "Awaiting review" },
+    { label: "Pending Sell", value: stats.pendingSell, raw: stats.pendingSell, icon: Coins, color: "text-pink-400", subtext: "Awaiting review" },
   ];
 
   return (
@@ -198,21 +197,27 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 10 Stat Cards — 2 rows of 5 */}
+      {/* 10 Stat Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-        {statCards.map((s) => (
-          <Card key={s.label} className="bg-[#1E293B] border-[#334155]">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className={`p-2.5 rounded-lg bg-[#0F172A] ${s.color}`}>
-                <s.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className="text-xl font-bold">{s.value}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {statCards.map((s) => {
+          const isZero = s.raw === 0;
+          return (
+            <Card key={s.label} className="bg-[#1E293B] border-[#334155] flex flex-col justify-between">
+              <CardContent className="p-4 flex items-start gap-4 flex-1">
+                <div className={`p-2.5 rounded-lg bg-[#0F172A] ${s.color}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-xs font-medium text-muted-foreground">{s.label}</p>
+                  <p className={`text-xl font-bold tracking-tight ${isZero ? "text-muted-foreground/60" : "text-white"}`}>
+                    {s.value}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{s.subtext}</p>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Period Toggle */}
@@ -227,46 +232,69 @@ export default function AdminDashboard() {
       {/* 3 Charts in a row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="bg-[#1E293B] border-[#334155]">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Revenue ({days}D)</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-lg font-medium tracking-tight">Revenue ({days}D)</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={chartData}>
-                <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} />
-                <YAxis stroke="#94A3B8" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#1E293B", border: "1px solid #334155" }} />
-                <Line type="monotone" dataKey="revenue" stroke="#22C55E" strokeWidth={2} dot={false} />
-              </LineChart>
+              {chartData.every(d => d.revenue === 0) ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground/80">No data available</div>
+              ) : (
+                <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${formatCurrency(v)}`} />
+                  <Tooltip 
+                    contentStyle={{ background: "#0F172A", border: "1px solid #334155", borderRadius: "8px" }}
+                    itemStyle={{ color: "#22C55E" }}
+                    formatter={(val: number) => [`₹${formatCurrency(val)}`, 'Revenue']}
+                  />
+                  <Line type="stepAfter" dataKey="revenue" stroke="#22C55E" strokeWidth={2.5} dot={false} activeDot={{ r: 4, fill: "#22C55E", strokeWidth: 0 }} />
+                </LineChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card className="bg-[#1E293B] border-[#334155]">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Sales ({days}D)</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-lg font-medium tracking-tight">Sales Volume ({days}D)</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData}>
-                <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} />
-                <YAxis stroke="#94A3B8" fontSize={11} />
-                <Tooltip contentStyle={{ background: "#1E293B", border: "1px solid #334155" }} />
-                <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-              </BarChart>
+              {chartData.every(d => d.sales === 0) ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground/80">No data available</div>
+              ) : (
+                <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    contentStyle={{ background: "#0F172A", border: "1px solid #334155", borderRadius: "8px" }}
+                    itemStyle={{ color: "#3B82F6" }}
+                    cursor={{ fill: "#334155", opacity: 0.4 }}
+                  />
+                  <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         <Card className="bg-[#1E293B] border-[#334155]">
-          <CardHeader className="pb-2"><CardTitle className="text-lg">Sales by Category</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-lg font-medium tracking-tight">Sales by Category</CardTitle></CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
-                  {categoryData.map((_, i) => (
-                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ background: "#1E293B", border: "1px solid #334155" }} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
+              {categoryData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-sm text-muted-foreground/80">No sales data</div>
+              ) : (
+                <PieChart>
+                  <Pie data={categoryData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={80} paddingAngle={2} stroke="none">
+                    {categoryData.map((_, i) => (
+                      <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ background: "#0F172A", border: "1px solid #334155", borderRadius: "8px" }}
+                    itemStyle={{ color: "#E2E8F0" }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: "8px" }} />
+                </PieChart>
+              )}
             </ResponsiveContainer>
           </CardContent>
         </Card>
@@ -295,25 +323,32 @@ export default function AdminDashboard() {
               </TableHeader>
               <TableBody>
                 {stats.recentOrders.length === 0 && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No orders yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10">No recent orders found</TableCell></TableRow>
                 )}
                 {stats.recentOrders.map((o, i) => {
                   const course = courseMap.get(o.course_id);
                   const profile = profileMap.get(o.user_id);
+                  const amount = Number(o.price_paid);
                   return (
-                    <TableRow key={o.id} className={`border-[#334155] ${i % 2 === 0 ? "bg-[#1E293B]" : "bg-[#263244]"}`}>
+                    <TableRow 
+                      key={o.id} 
+                      onClick={() => navigate("/admin/orders")}
+                      className={`border-[#334155] cursor-pointer hover:bg-[#334155]/50 transition-colors bg-[#1E293B]`}
+                    >
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell>
                         {course?.thumbnail_url ? (
                           <img src={course.thumbnail_url} alt="" className="w-10 h-10 rounded-full object-cover" />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#334155] flex items-center justify-center text-xs">N/A</div>
+                          <div className="w-10 h-10 rounded-full bg-[#334155] flex items-center justify-center text-xs text-muted-foreground">N/A</div>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm whitespace-normal">{course?.title || o.course_id}</TableCell>
-                      <TableCell className="text-sm">{profile?.full_name || profile?.email || "—"}</TableCell>
-                      <TableCell className="font-semibold">₹{Number(o.price_paid).toLocaleString()}</TableCell>
-                      <TableCell className="text-xs">{formatDateTime(o.created_at)}</TableCell>
+                      <TableCell className="text-sm font-medium whitespace-normal max-w-[200px] truncate">{course?.title || o.course_id}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{profile?.full_name || profile?.email || "—"}</TableCell>
+                      <TableCell className={`font-semibold ${amount === 0 ? "text-muted-foreground/60" : "text-emerald-400"}`}>
+                        ₹{amount > 0 ? formatCurrency(amount) : 0}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatNiceDate(o.created_at)}</TableCell>
                     </TableRow>
                   );
                 })}
@@ -346,24 +381,28 @@ export default function AdminDashboard() {
               </TableHeader>
               <TableBody>
                 {stats.recentUsers.length === 0 && (
-                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No users yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10">No recent signups</TableCell></TableRow>
                 )}
                 {stats.recentUsers.map((u, i) => {
                   const role = roleMap.get(u.id) || "user";
                   const initials = (u.full_name || u.email || "?").charAt(0).toUpperCase();
                   return (
-                    <TableRow key={u.id} className={`border-[#334155] ${i % 2 === 0 ? "bg-[#1E293B]" : "bg-[#263244]"}`}>
+                    <TableRow 
+                      key={u.id} 
+                      onClick={() => navigate("/admin/users")}
+                      className={`border-[#334155] cursor-pointer hover:bg-[#334155]/50 transition-colors bg-[#1E293B]`}
+                    >
                       <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                       <TableCell>
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-[#334155] text-sm">{initials}</AvatarFallback>
+                        <Avatar className="h-9 w-9">
+                          <AvatarFallback className="bg-[#334155] text-sm text-white">{initials}</AvatarFallback>
                         </Avatar>
                       </TableCell>
-                      <TableCell className="text-sm whitespace-normal">{u.full_name || "—"}</TableCell>
-                      <TableCell className="text-sm">{u.email || "—"}</TableCell>
-                      <TableCell className="text-xs">{formatDateTime(u.created_at)}</TableCell>
+                      <TableCell className="text-sm font-medium whitespace-normal">{u.full_name || "—"}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{u.email || "—"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{formatNiceDate(u.created_at)}</TableCell>
                       <TableCell>
-                        <Badge className={role === "admin" ? "bg-red-600/20 text-red-400 border-red-600/30" : "bg-blue-600/20 text-blue-400 border-blue-600/30"}>
+                        <Badge variant="outline" className={role === "admin" ? "bg-red-500/10 text-red-500 border-red-500/30 font-medium" : "bg-blue-500/10 text-blue-400 border-blue-500/30 font-medium"}>
                           {role}
                         </Badge>
                       </TableCell>
@@ -400,25 +439,31 @@ export default function AdminDashboard() {
               </TableHeader>
               <TableBody>
                 {topCourses.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No sales data</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10">No sales data recorded yet</TableCell></TableRow>
                 )}
                 {topCourses.map((c, i) => (
-                  <TableRow key={c.id} className={`border-[#334155] ${i % 2 === 0 ? "bg-[#1E293B]" : "bg-[#263244]"}`}>
+                  <TableRow 
+                    key={c.id} 
+                    onClick={() => navigate("/admin/courses")}
+                    className={`border-[#334155] cursor-pointer hover:bg-[#334155]/50 transition-colors bg-[#1E293B]`}
+                  >
                     <TableCell className="font-mono text-xs">{i + 1}</TableCell>
                     <TableCell>
                       {c.thumbnail ? (
-                        <img src={c.thumbnail} alt="" className="w-10 h-10 rounded object-cover" />
+                        <img src={c.thumbnail} alt="" className="w-10 h-10 rounded-lg object-cover" />
                       ) : (
-                        <div className="w-10 h-10 rounded bg-[#334155] flex items-center justify-center text-xs">N/A</div>
+                        <div className="w-10 h-10 rounded-lg bg-[#334155] flex items-center justify-center text-xs text-muted-foreground">N/A</div>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm whitespace-normal">{c.title}</TableCell>
-                    <TableCell className="text-sm">{c.category}</TableCell>
-                    <TableCell className="font-semibold">{c.sales}</TableCell>
-                    <TableCell className="font-semibold">₹{c.revenue.toLocaleString()}</TableCell>
+                    <TableCell className="text-sm font-medium whitespace-normal max-w-[200px] truncate">{c.title}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{c.category}</TableCell>
+                    <TableCell className={`font-semibold ${c.sales === 0 ? "text-muted-foreground/60" : ""}`}>{c.sales}</TableCell>
+                    <TableCell className={`font-semibold ${c.revenue === 0 ? "text-muted-foreground/60" : "text-emerald-400"}`}>
+                      ₹{c.revenue > 0 ? formatCurrency(c.revenue) : 0}
+                    </TableCell>
                     <TableCell>
-                      <Badge className={c.is_published ? "bg-green-600/20 text-green-400 border-green-600/30" : "bg-red-600/20 text-red-400 border-red-600/30"}>
-                        {c.is_published ? "Published" : "Unpublished"}
+                      <Badge variant="outline" className={c.is_published ? "bg-green-500/10 text-green-400 border-green-500/30" : "bg-red-500/10 text-red-400 border-red-500/30"}>
+                        {c.is_published ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
                   </TableRow>

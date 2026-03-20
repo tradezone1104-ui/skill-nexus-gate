@@ -211,7 +211,7 @@ const MyLearning = () => {
 
   // Subscription courses (sample if subscribed)
   const subscriptionCourses = useMemo(
-    () => (isSubscribed ? courses.slice(50, 58) : []),
+    () => (isSubscribed ? courses.slice(0, 12) : []),
     [isSubscribed]
   );
 
@@ -228,7 +228,7 @@ const MyLearning = () => {
     );
   }
 
-  const hasNoCourses = !user || purchasedCourses.length === 0;
+  const hasNoCourses = !user || (purchasedCourses.length === 0 && !isSubscribed);
 
   return (
     <div className="min-h-screen bg-background">

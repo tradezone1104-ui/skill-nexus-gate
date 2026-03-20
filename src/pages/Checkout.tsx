@@ -205,6 +205,47 @@ const Checkout = () => {
         const { error } = await supabase.from("purchases").insert(rows);
         if (error) throw error;
         
+        // Subscription Logic Injection
+        try {
+          console.log("Purchase success — inserting subscriptions...");
+          
+          for (const course of checkoutCourses) {
+            if (!course.id || !user?.id) continue;
+            console.log("user_id:", user.id, "course_id:", course.id);
+            
+            // Check if subscription already exists
+            const { data: existing } = await (supabase as any)
+              .from("subscriptions")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("course_id", course.id);
+            
+            if (existing && existing.length > 0) {
+              console.log("Subscription already exists, skipping...");
+              continue;
+            }
+            
+            const { error: subError } = await (supabase as any)
+              .from("subscriptions")
+              .insert({
+                user_id: user.id,
+                course_id: course.id,
+                plan_name: "Lifetime",
+                start_date: new Date().toISOString(),
+                end_date: null,
+                status: "active"
+              });
+            
+            if (subError) {
+              console.error("Subscription insert error:", subError);
+            } else {
+              console.log("Subscription inserted for:", course.id);
+            }
+          }
+        } catch (err) {
+          console.error("Subscription insert failed:", err);
+        }
+        
         // Remove real courses from cart if checking out entire cart
         if (!courseId) {
           for (const c of realCourses) {

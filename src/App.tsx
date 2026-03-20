@@ -25,6 +25,7 @@ import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AccountSettings from "./pages/AccountSettings";
+import Billing from "./pages/Billing";
 import Wishlist from "./pages/Wishlist";
 import Cart from "./pages/Cart";
 import PurchaseHistory from "./pages/PurchaseHistory";
@@ -93,6 +94,7 @@ const App = () => (
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/settings" element={<AccountSettings />} />
                   <Route path="/settings/:section" element={<AccountSettings />} />
+                  <Route path="/billing" element={<Billing />} />
                   <Route path="/help" element={<HelpCenter />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/cv-coins" element={<CvCoins />} />

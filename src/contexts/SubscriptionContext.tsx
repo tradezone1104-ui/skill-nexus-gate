@@ -3,10 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Subscription {
-  plan: "monthly" | "yearly";
+  plan_name: "monthly" | "yearly";
   status: string;
   start_date: string;
-  expiry_date: string;
+  end_date: string;
 }
 
 interface SubscriptionContextType {
@@ -14,6 +14,7 @@ interface SubscriptionContextType {
   isSubscribed: boolean;
   loading: boolean;
   subscribe: (plan: "monthly" | "yearly") => Promise<void>;
+  reactivate: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
@@ -21,6 +22,7 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
   isSubscribed: false,
   loading: true,
   subscribe: async () => {},
+  reactivate: async () => {},
 });
 
 export const useSubscription = () => useContext(SubscriptionContext);
@@ -37,15 +39,23 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setLoading(true);
-    supabase
+    (supabase as any)
       .from("subscriptions")
       .select("*")
       .eq("user_id", user.id)
-      .eq("status", "active")
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data && new Date(data.expiry_date) > new Date()) {
-          setSubscription(data as Subscription);
+      .in("status", ["active", "cancelled"])
+      .order("created_at", { ascending: false })
+      .then(({ data }: any) => {
+        if (data && data.length > 0) {
+          const now = new Date();
+          const validSub = data.find((sub: any) => 
+            !sub.end_date || new Date(sub.end_date) > now
+          );
+          if (validSub) {
+            setSubscription(validSub as Subscription);
+          } else {
+            setSubscription(null);
+          }
         } else {
           setSubscription(null);
         }
@@ -62,28 +72,72 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     if (plan === "monthly") expiry.setMonth(expiry.getMonth() + 1);
     else expiry.setFullYear(expiry.getFullYear() + 1);
 
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("subscriptions")
       .upsert(
         {
           user_id: user.id,
-          plan,
+          plan_name: plan,
+          course_id: null,
           status: "active",
           start_date: now.toISOString(),
-          expiry_date: expiry.toISOString(),
+          end_date: expiry.toISOString(),
         },
         { onConflict: "user_id" }
       )
-      .select()
-      .maybeSingle();
+      .select();
 
-    if (!error && data) {
-      setSubscription(data as Subscription);
+    if (!error && data && data.length > 0) {
+      setSubscription(data[0] as Subscription);
+      
+      // History Tracking
+      try {
+        await (supabase as any)
+          .from("subscription_history")
+          .insert({
+            user_id: user.id,
+            plan_name: plan,
+            action: "subscribed",
+            days_changed: plan === "monthly" ? 30 : 365,
+            amount: plan === "monthly" ? 499 : 3999,
+            created_at: new Date().toISOString()
+          });
+      } catch (histError) {
+        console.error("History tracking failed:", histError);
+      }
+    }
+  };
+
+  const reactivate = async () => {
+    if (!subscription || !user) return;
+    const { error } = await (supabase as any)
+      .from("subscriptions")
+      .update({ status: "active" })
+      .eq("id", (subscription as any).id);
+
+    if (!error) {
+      setSubscription({ ...subscription, status: "active" } as Subscription);
+
+      // History Tracking
+      try {
+        await (supabase as any)
+          .from("subscription_history")
+          .insert({
+            user_id: user.id,
+            plan_name: subscription.plan_name,
+            action: "reactivated",
+            days_changed: 0,
+            amount: null,
+            created_at: new Date().toISOString()
+          });
+      } catch (histError) {
+        console.error("History tracking failed:", histError);
+      }
     }
   };
 
   return (
-    <SubscriptionContext.Provider value={{ subscription, isSubscribed, loading, subscribe }}>
+    <SubscriptionContext.Provider value={{ subscription, isSubscribed, loading, subscribe, reactivate }}>
       {children}
     </SubscriptionContext.Provider>
   );
