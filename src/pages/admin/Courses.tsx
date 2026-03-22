@@ -463,25 +463,35 @@ export default function AdminCourses() {
 
   // CSV
   const exportCSV = () => {
-    const columns = [
+    const exportColumns = [
       "title", "description", "short_description", "price", "original_price",
       "thumbnail_url", "instructor_name", "instructor_bio", "category",
       "subcategory", "level", "language", "duration_hours", "total_lectures",
-      "rating", "total_reviews", "total_students", "telegram_link", "is_free",
+      "manual_rating", "manual_students", "telegram_link", "is_free",
       "is_featured", "is_published", "tags", "what_you_learn", "requirements"
     ];
 
-    const header = columns.join(",") + "\n";
+    const header = exportColumns.join(",") + "\n";
     const rows = courses.map(c => {
-      return columns.map(col => {
-        let val = c[col];
+      return exportColumns.map(col => {
+        // Map export column names to actual DB field names
+        let val: any;
+        if (col === "manual_rating") val = c["rating"];
+        else if (col === "manual_students") val = c["total_students"];
+        else val = c[col];
+
         if (val === null || val === undefined) val = "";
 
-        if (col === "tags" && Array.isArray(val)) {
+        if (col === "thumbnail_url" && typeof val === "string" && val.startsWith("data:")) {
+          // Skip base64 strings — export empty string
+          val = "";
+        }
+
+        if ((col === "category" || col === "subcategory" || col === "tags") && Array.isArray(val)) {
           val = `"${val.join(",")}"`;
         } else if ((col === "what_you_learn" || col === "requirements") && Array.isArray(val)) {
           val = `"${val.join("|")}"`;
-        } else if (typeof val === "string") {
+        } else if (typeof val === "string" && val !== "") {
           val = `"${val.replace(/"/g, '""')}"`;
         }
         return val;

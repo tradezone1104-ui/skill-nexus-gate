@@ -28,8 +28,8 @@ function mapDbCourse(row: any): Course {
     longDescription: row.description || "",
     price: Number(row.price) || 0,
     originalPrice: Number(row.original_price) || Number(row.price) || 0,
-    category: row.category || "Trading",
-    subcategory: row.subcategory || "",
+    category: Array.isArray(row.category) ? (row.category[0] || "Trading") : (row.category || "Trading"),
+    subcategory: Array.isArray(row.subcategory) ? (row.subcategory[0] || "") : (row.subcategory || ""),
     instructor: row.instructor_name || "Unknown",
     rating: Number(row.rating) || 0,
     students: Number(row.total_students) || 0,
@@ -137,7 +137,10 @@ const Courses = () => {
       const catGroup = categoryGroups.find(g => g.id === category);
       if (catGroup) {
         const catName = catGroup.name.toLowerCase();
-        results = results.filter(c => c.category.toLowerCase().includes(catName.toLowerCase()) || catGroup.subcategories.some(s => c.subcategory === s.id || c.subcategory === s.name));
+        results = results.filter(c => {
+          const cat = Array.isArray(c.category) ? (c.category[0] || "") : (c.category || "");
+          return cat.toLowerCase().includes(catName) || catGroup.subcategories.some(s => c.subcategory === s.id || c.subcategory === s.name);
+        });
       }
     }
 
