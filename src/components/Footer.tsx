@@ -35,7 +35,7 @@ const Footer = () => (
             <Link to="/contact" className="hover:text-primary transition-colors">Contact Us</Link>
             <Link to="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-primary transition-colors">Terms and Conditions</Link>
-            <Link to="/refund" className="hover:text-primary transition-colors">Refund Policy</Link>
+            <Link to="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link>
           </div>
         </div>
         <div>
@@ -43,7 +43,7 @@ const Footer = () => (
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">
             <Link to="/support" className="hover:text-primary transition-colors">Help & Support</Link>
             <Link to="/support" className="hover:text-primary transition-colors">FAQ</Link>
-            <Link to="/refund" className="hover:text-primary transition-colors">Refund Policy</Link>
+            <Link to="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link>
           </div>
         </div>
       </div>

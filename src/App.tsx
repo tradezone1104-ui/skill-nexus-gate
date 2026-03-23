@@ -33,6 +33,8 @@ import CourseList from "./pages/CourseList";
 import ReferAFriend from "./pages/ReferAFriend";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
+import TermsAndConditions from "./pages/TermsAndConditions";
+import RefundPolicy from "./pages/RefundPolicy";
 import FloatingSupport from "./components/FloatingSupport";
 import HelpCenter from "./pages/HelpCenter";
 import Contact from "./pages/Contact";
@@ -101,6 +103,8 @@ const App = () => (
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/subscription-checkout" element={<SubscriptionCheckout />} />
                   <Route path="/payment-success" element={<PaymentSuccess />} />
+                  <Route path="/terms" element={<TermsAndConditions />} />
+                  <Route path="/refund-policy" element={<RefundPolicy />} />
                   <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
                     <Route index element={<AdminDashboard />} />
                     <Route path="courses" element={<AdminCourses />} />
